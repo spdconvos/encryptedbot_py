@@ -10,3 +10,16 @@ if i ported to node. I dont port it bc i did. no i didnt ;)
 ### Further Reading
 - [Open MHZ API research](./API/OPENMHZ_API.md)
 - [Watching SPD bot](https://github.com/watching-spd/umbrella)
+
+### Docker
+The docker container can be built using `docker build -t openmhz-encrypted .`. Be sure to populate the values in the `secrets.json` file first, then run the container with `docker run --rm -v $(pwd)/secrets.json:/app/secrets.json openmhz-encrypted`.
+
+If you want to tweet, you'll need to make a twitter account, apply for developer access, and then generate and save consumer keys and access tokens. Then, populate a file named `secrets.json` with these fields:
+```json
+{
+  "consumer_key": "",
+  "consumer_secret": "",
+  "access_token_key": "",
+  "access_token_secret": ""
+}
+```
