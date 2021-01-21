@@ -3,7 +3,9 @@ A bot that tweets every time Seattle Police make a call over encrypted radio. Th
 
 Currently the window for replies is 5 minutes, if nothing is said over encrypted in that window the bot will start a new thread. This window may be adjusted in the future as needed.
 
-This bot might be able to be run on the same account as other automated encryption watchers, please contact me. No I won't port to node ;)
+This bot might be able to be run on the same account as other automated encryption watchers, please contact me. 
+
+if i ported to node. I dont port it bc i did. no i didnt ;)
 
 ### Further Reading
 - [Open MHZ API research](./API/OPENMHZ_API.md)
