@@ -25,10 +25,10 @@ class Bot:
         with open("./secrets.json") as f:
             keys = json.load(f)
         auth = tweepy.OAuthHandler(
-            consumer_key=keys["consumer_key"], consumer_secret=keys["consumer_secret"]
+            consumer_key=keys["C_k"], consumer_secret=keys["c_s"]
         )
         # If you don't already have an access token, sucks to be you
-        auth.set_access_token(keys["access_token_key"], keys["access_token_secret"])
+        auth.set_access_token(keys["a_k"], keys["a_s"])
         self.api = tweepy.API(auth)
 
         self.interval = Set.Interval(30, self.check)
