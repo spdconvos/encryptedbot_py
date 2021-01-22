@@ -1,7 +1,7 @@
 import tweepy, json, pytz, Scraper, Set
 from datetime import datetime, timedelta
 
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 print("Version %s of EncryptedConvos" % VERSION)
 
 
@@ -71,7 +71,7 @@ class Bot:
             diff = datetime.now(pytz.utc) - datetime.strptime(
                 call["time"], "%Y-%m-%dT%H:%M:%S.000%z"
             )
-            if not abs(diff.total_seconds()) >= 1.8e3:
+            if not abs(diff.total_seconds()) >= 1.8e3 and call["len"] >= 1:
                 filteredCalls.append(call)
 
         if len(filteredCalls) == 1:
