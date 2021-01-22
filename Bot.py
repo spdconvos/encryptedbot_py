@@ -1,7 +1,7 @@
 import tweepy, json, pytz, Scraper, Set
 from datetime import datetime, timedelta
 
-VERSION = "0.2.1"
+VERSION = "0.2.0"
 print("Version %s of EncryptedConvos" % VERSION)
 
 
@@ -29,10 +29,10 @@ class Bot:
         with open("./secrets.json") as f:
             keys = json.load(f)
         auth = tweepy.OAuthHandler(
-            consumer_key=keys["c_k"], consumer_secret=keys["c_s"]
+            consumer_key=keys["consumer_key"], consumer_secret=keys["consumer_secret"]
         )
         # If you don't already have an access token, sucks to be you
-        auth.set_access_token(keys["a_k"], keys["a_s"])
+        auth.set_access_token(keys["access_token_key"], keys["access_token_secret"])
         self.api = tweepy.API(auth)
 
         self.interval = Set.Interval(30, self._check)
