@@ -1,7 +1,7 @@
 import tweepy, json, pytz, Scraper, Set
 from datetime import datetime, timedelta
 
-VERSION = "0.2.1"
+VERSION = "0.2.3"
 print("Version %s of EncryptedConvos" % VERSION)
 
 
@@ -74,10 +74,14 @@ class Bot:
             if not abs(diff.total_seconds()) >= 1.8e3 and call["len"] >= 1:
                 filteredCalls.append(call)
 
+        msg = ""
         if len(filteredCalls) == 1:
             msg = self._formatMessage(filteredCalls[0])
-        else:
+        elif len(filteredCalls) > 1:
             msg = self._formatMultiMessage(filteredCalls)
+        else:
+            # GTFO if there are no calls to post
+            return
 
         # Check for a cached tweet, then check if the last tweet was less than the window ago
         if (
