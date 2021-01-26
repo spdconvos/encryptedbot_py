@@ -1,7 +1,7 @@
 import tweepy, json, pytz, Scraper, Set
 from datetime import datetime, timedelta
 
-VERSION = "0.2.3"
+VERSION = "0.2.4"
 print("Version %s of EncryptedConvos" % VERSION)
 
 
@@ -10,8 +10,10 @@ class Bot:
     """
 
     # Consts
-    SINGLE_CALL_MSG = "[Automated post] %s second encrypted call at %s. #SeattleProtestComms #ProtestCommsSeattle"
-    MULTI_CALL_BASE = "[Automated post] %s #SeattleProtestComms #ProtestCommsSeattle"
+    SINGLE_CALL_MSG = (
+        "%s second encrypted call at %s. #SeattleProtestComms #ProtestCommsSeattle"
+    )
+    MULTI_CALL_BASE = "%s #SeattleProtestComms #ProtestCommsSeattle"
     MULTI_CALL_CALL = "%s second encrypted call at %s"
     TIMEZONE = pytz.timezone("US/Pacific")
     WINDOW_M = 5
@@ -83,10 +85,10 @@ class Bot:
             # GTFO if there are no calls to post
             return
 
-        # Check for a cached tweet, then check if the last tweet was less than the window ago
+        # Check for a cached tweet, then check if the last tweet was less than the window ago. If the window has expired dereference the cached tweet.
         if (
             self.cachedTime != None
-            and self.cachedTime + timedelta(minutes=self.WINDOW_M) < datetime.now()
+            and self.cachedTime + timedelta(minutes=self.WINDOW_M) <= datetime.now()
         ):
             self.cachedTweet = None
 
