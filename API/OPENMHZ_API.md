@@ -2,7 +2,7 @@
 This repo includes a semi-novel Open MHZ API call. By hitting the `/{trunk}/calls/newer?time={time}&filter-type={talkgroup|group}&filter-code={talkgroup or group id(s)}` endpoint we get the newest calls.
 
 ## {time}
-The time parameter is not in a standard UNIX timestamp!! The parameter is the whole number of seconds of the provided UNIX time with the first three decimal points tacked on at the end.
+The time parameter is not in a standard UNIX timestamp!! The parameter is the whole number of seconds of the intended UNIX time with the first three decimal points tacked on at the end.
 
 ## return
 This API method returns a JSON object. An example of a returned object is [included here](./example.json).
