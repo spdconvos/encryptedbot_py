@@ -22,6 +22,9 @@ This is all I care about. This is a list of call objects.
 | star | The number of stars the call has at the time of the API call | Integer |
 | len | The call length. | Integer |
 
+### direction
+Always newer for calls to this endpoint. Calls are ordered from oldest to newest.
+
 ## observed weird behaviors
 - sometimes calls from random times will be returned and must be filtered out
 - 0 length calls will sometimes be returned
