@@ -11,8 +11,16 @@ if i ported to node. I dont port it bc i did. no i didnt ;)
 - [Open MHZ API research](./API/OPENMHZ_API.md)
 - [Watching SPD bot](https://github.com/watching-spd/umbrella)
 
+### Configuration
+
+The following aspects of the bot can be tuned with environment variables:
+
+ * `CALL_THRESHOLD` (integer) - minimum call duration for the bot to tweet
+ * `DEBUG` ("true" or "false") - enable/disable debug logging, debug prevents tweeting
+
 ### Docker
-The docker container can be built using `docker build -t openmhz-encrypted .`. Be sure to populate the values in the `secrets.json` file first, then run the container with `docker run --rm -v $(pwd)/secrets.json:/app/secrets.json openmhz-encrypted`.
+The docker container can be built using `docker build -t openmhz-encrypted .`.
+Be sure to populate the values in the `secrets.json` file first, then run the container with `docker run --rm -v $(pwd)/secrets.json:/app/secrets.json openmhz-encrypted`.
 
 If you want to tweet, you'll need to make a twitter account, apply for developer access, and then generate and save consumer keys and access tokens. Then, populate a file named `secrets.json` with these fields:
 ```json
@@ -23,3 +31,5 @@ If you want to tweet, you'll need to make a twitter account, apply for developer
   "access_token_secret": ""
 }
 ```
+
+To change the configuration, add environment variables to a `.env` file and run the docker container with `docker run --rm -v $(pwd)/secrets.json:/app/secrets.json --env-file .env openmhz-encrypted`.
