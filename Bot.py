@@ -83,13 +83,14 @@ class Bot:
             diff = datetime.now(pytz.utc) - datetime.strptime(
                 call["time"], "%Y-%m-%dT%H:%M:%S.000%z"
             )
-            if (
-                not abs(diff.total_seconds()) >= 1.8e3
-                and call["len"] >= self.callThreshold
-            ):
+            if not abs(diff.total_seconds()) >= 1.8e3:
+                if call["len"] < self.callThreshold:
+                    log.debug(
+                        f"Call of size {call['len']} below threshold ({self.callThreshold})"
+                    )
+                    continue
                 filteredCalls.append(call)
 
-        msg = ""
         if len(filteredCalls) == 1:
             msg = self._formatMessage(filteredCalls[0])
         elif len(filteredCalls) > 1:
