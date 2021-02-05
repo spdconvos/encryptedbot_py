@@ -7,12 +7,11 @@ import pytz
 
 
 class Instance:
-    """A scraping instance that stores the endpoint, and provides a scrape function.
-    """
+    """A scraping instance that stores the endpoint, and provides a scrape function."""
 
     def __init__(self, url) -> None:
         """Starts the scraper.
-        
+
         Args:
             url (str): The API endpoint to scrape.
         """

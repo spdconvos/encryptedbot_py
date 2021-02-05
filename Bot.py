@@ -13,8 +13,7 @@ print(f"Version {VERSION} of EncryptedConvos")
 
 
 class Bot:
-    """The twitter bot.
-    """
+    """The twitter bot."""
 
     # Consts
     SINGLE_CALL_MSG = (
@@ -29,8 +28,7 @@ class Bot:
     # BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}&filter-type=group&filter-code=5ed813629818fe0025c8e245"
 
     def __init__(self) -> None:
-        """Initializes the class.
-        """
+        """Initializes the class."""
         self.cachedTweet = None
         self.cachedTime = None
         self.scraper = Scraper.Instance(self.BASE_URL)
@@ -49,14 +47,12 @@ class Bot:
         self.interval = Set.Interval(30, self._check)
 
     def _kill(self) -> None:
-        """This kills the c̶r̶a̶b̶  bot.
-        """
+        """This kills the c̶r̶a̶b̶  bot."""
         self.interval.cancel()
         exit(0)
 
     def _check(self) -> None:
-        """Checks the API and sends a tweet if needed.
-        """
+        """Checks the API and sends a tweet if needed."""
         try:
             print(f"Checking!: {datetime.now()}")
             json = self.scraper.getJSON()
@@ -82,7 +78,10 @@ class Bot:
             diff = datetime.now(pytz.utc) - datetime.strptime(
                 call["time"], "%Y-%m-%dT%H:%M:%S.000%z"
             )
-            if not abs(diff.total_seconds()) >= 1.8e3 and call["len"] >= self.callThreshold:
+            if (
+                not abs(diff.total_seconds()) >= 1.8e3
+                and call["len"] >= self.callThreshold
+            ):
                 filteredCalls.append(call)
 
         msg = ""
@@ -153,7 +152,9 @@ class Bot:
             localized = date.replace(tzinfo=pytz.utc).astimezone(self.TIMEZONE)
             normalized = self.TIMEZONE.normalize(localized)
             callStrings.append(
-                self.MULTI_CALL_CALL.format(call["len"], normalized.strftime("%#I:%M:%S %p"))
+                self.MULTI_CALL_CALL.format(
+                    call["len"], normalized.strftime("%#I:%M:%S %p")
+                )
             )
 
         return self.MULTI_CALL_BASE.format(", ".join(callStrings))
