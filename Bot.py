@@ -28,6 +28,7 @@ class Bot:
         self.cachedTime = None
         self.scraper = Scraper.Instance(self.BASE_URL)
         self.callThreshold = int(os.getenv("CALL_THRESHOLD", 1))
+        self.debug = os.getenv("DEBUG", "true").lower() == "true"
 
         with open("./secrets.json") as f:
             keys = json.load(f)
@@ -84,6 +85,11 @@ class Bot:
             msg = self._formatMultiMessage(filteredCalls)
         else:
             # GTFO if there are no calls to post
+            return
+
+        if self.debug:
+            print("DEBUG MESSAGE:")
+            print(msg)
             return
 
         # Check for a cached tweet, then check if the last tweet was less than the window ago. If the window has expired dereference the cached tweet.
