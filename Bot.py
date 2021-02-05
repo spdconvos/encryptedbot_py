@@ -1,5 +1,12 @@
-import tweepy, json, pytz, Scraper, Set, os
+import json
+import os
 from datetime import datetime, timedelta
+
+import pytz
+import tweepy
+
+import Scraper
+import Set
 
 VERSION = "0.2.4"
 print("Version %s of EncryptedConvos" % VERSION)

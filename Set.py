@@ -1,4 +1,5 @@
-import threading, time
+import threading
+import time
 
 
 class Interval:

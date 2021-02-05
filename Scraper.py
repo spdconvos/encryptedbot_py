@@ -1,5 +1,9 @@
-import json, urllib.request, urllib.error, pytz
+import json
+import urllib.error
+import urllib.request
 from datetime import datetime, timedelta
+
+import pytz
 
 
 class Instance:
