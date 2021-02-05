@@ -1,4 +1,4 @@
-import tweepy, json, pytz, Scraper, Set
+import tweepy, json, pytz, Scraper, Set, os
 from datetime import datetime, timedelta
 
 VERSION = "0.2.4"
@@ -27,6 +27,7 @@ class Bot:
         self.cachedTweet = None
         self.cachedTime = None
         self.scraper = Scraper.Instance(self.BASE_URL)
+        self.callThreshold = int(os.getenv("CALL_THRESHOLD", 1))
 
         with open("./secrets.json") as f:
             keys = json.load(f)
@@ -73,7 +74,7 @@ class Bot:
             diff = datetime.now(pytz.utc) - datetime.strptime(
                 call["time"], "%Y-%m-%dT%H:%M:%S.000%z"
             )
-            if not abs(diff.total_seconds()) >= 1.8e3 and call["len"] >= 1:
+            if not abs(diff.total_seconds()) >= 1.8e3 and call["len"] >= self.callThreshold:
                 filteredCalls.append(call)
 
         msg = ""
