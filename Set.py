@@ -1,5 +1,9 @@
+import logging
 import threading
 import time
+
+
+log = logging.getLogger(__name__)
 
 
 class Interval:
@@ -28,7 +32,7 @@ class Interval:
             try:
                 self.action()
             except OSError as e:
-                print(e)
+                log.exception(e)
                 pass
 
     def cancel(self) -> None:

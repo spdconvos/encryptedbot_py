@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from datetime import datetime, timedelta
 
@@ -9,7 +10,8 @@ import Scraper
 import Set
 
 VERSION = "0.2.4"
-print(f"Version {VERSION} of EncryptedConvos")
+
+log = logging.getLogger()
 
 
 class Bot:
@@ -35,6 +37,9 @@ class Bot:
         self.callThreshold = int(os.getenv("CALL_THRESHOLD", 1))
         self.debug = os.getenv("DEBUG", "true").lower() == "true"
 
+        if self.debug:
+            log.setLevel(logging.DEBUG)
+
         with open("./secrets.json") as f:
             keys = json.load(f)
         auth = tweepy.OAuthHandler(
@@ -54,14 +59,14 @@ class Bot:
     def _check(self) -> None:
         """Checks the API and sends a tweet if needed."""
         try:
-            print(f"Checking!: {datetime.now()}")
+            log.info(f"Checking!: {datetime.now()}")
             json = self.scraper.getJSON()
             try:
-                print(f"Found {len(json['calls'])} calls.")
+                log.info(f"Found {len(json['calls'])} calls.")
                 if len(json["calls"]) > 0:
                     self._postTweet(json["calls"])
             except TypeError as e:
-                print(e)
+                log.exception(e)
         except KeyboardInterrupt as e:
             self._kill()
 
@@ -94,8 +99,7 @@ class Bot:
             return
 
         if self.debug:
-            print("DEBUG MESSAGE:")
-            print(msg)
+            log.debug(msg)
             return
 
         # Check for a cached tweet, then check if the last tweet was less than the window ago. If the window has expired dereference the cached tweet.
@@ -107,14 +111,14 @@ class Bot:
 
         try:
             if self.cachedTweet != None:
-                print("    " + msg)
+                log.info("    " + msg)
                 self.cachedTweet = self.api.update_status(msg, self.cachedTweet).id
             else:
-                print(msg)
+                log.info(msg)
                 self.cachedTweet = self.api.update_status(msg).id
             self.cachedTime = datetime.now()
         except tweepy.TweepError as e:
-            print(e)
+            log.exception(e)
 
     def _formatMessage(self, call) -> str:
         """Generate a tweet message.
@@ -161,4 +165,10 @@ class Bot:
 
 
 if __name__ == "__main__":
+    # Format logging
+    logging.basicConfig(
+        format="[%(asctime)s - %(name)s - %(lineno)3d][%(levelname)s] %(message)s",
+        level=logging.INFO,
+    )
+    log.info(f"Version {VERSION} of EncryptedConvos")
     bot = Bot()

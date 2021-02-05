@@ -1,9 +1,13 @@
 import json
+import logging
 import urllib.error
 import urllib.request
 from datetime import datetime, timedelta
 
 import pytz
+
+
+log = logging.getLogger(__name__)
 
 
 class Instance:
@@ -28,10 +32,10 @@ class Instance:
         res = None
         try:
             req = urllib.request.urlopen(self.url.format(self.lastCheck))
-            # print(self.BASE_URL.format(self.lastCheck))
+            # log.debug(self.BASE_URL.format(self.lastCheck))
             res = json.loads(req.read().decode())
         except urllib.error.URLError as e:
-            print(e)
+            log.exception(e)
         self.lastCheck = self._timestamp()
         return res
 
