@@ -9,7 +9,7 @@ import Scraper
 import Set
 
 VERSION = "0.2.4"
-print("Version %s of EncryptedConvos" % VERSION)
+print(f"Version {VERSION} of EncryptedConvos")
 
 
 class Bot:
@@ -18,15 +18,15 @@ class Bot:
 
     # Consts
     SINGLE_CALL_MSG = (
-        "%s second encrypted call at %s. #SeattleProtestComms #ProtestCommsSeattle"
+        "{} second encrypted call at {}. #SeattleProtestComms #ProtestCommsSeattle"
     )
-    MULTI_CALL_BASE = "%s #SeattleProtestComms #ProtestCommsSeattle"
-    MULTI_CALL_CALL = "%s second encrypted call at %s"
+    MULTI_CALL_BASE = "{} #SeattleProtestComms #ProtestCommsSeattle"
+    MULTI_CALL_CALL = "{} second encrypted call at {}"
     TIMEZONE = pytz.timezone("US/Pacific")
     WINDOW_M = 5
-    BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time=%s&filter-type=talkgroup&filter-code=44912,45040,45112,45072,45136"
+    BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}&filter-type=talkgroup&filter-code=44912,45040,45112,45072,45136"
     # DEBUG URL TO GET A LOT OF API RESPONSES
-    # BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time=%s&filter-type=group&filter-code=5ed813629818fe0025c8e245"
+    # BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}&filter-type=group&filter-code=5ed813629818fe0025c8e245"
 
     def __init__(self) -> None:
         """Initializes the class.
@@ -58,10 +58,10 @@ class Bot:
         """Checks the API and sends a tweet if needed.
         """
         try:
-            print("Checking!: %s" % datetime.now())
+            print(f"Checking!: {datetime.now()}")
             json = self.scraper.getJSON()
             try:
-                print("Found %s calls." % len(json["calls"]))
+                print(f"Found {len(json['calls'])} calls.")
                 if len(json["calls"]) > 0:
                     self._postTweet(json["calls"])
             except TypeError as e:
@@ -131,7 +131,7 @@ class Bot:
         # Fuck I hate how computer time works
         localized = date.replace(tzinfo=pytz.utc).astimezone(self.TIMEZONE)
         normalized = self.TIMEZONE.normalize(localized)
-        return self.SINGLE_CALL_MSG % (
+        return self.SINGLE_CALL_MSG.format(
             call["len"],
             normalized.strftime("%#I:%M:%S %p"),
         )
@@ -153,11 +153,10 @@ class Bot:
             localized = date.replace(tzinfo=pytz.utc).astimezone(self.TIMEZONE)
             normalized = self.TIMEZONE.normalize(localized)
             callStrings.append(
-                self.MULTI_CALL_CALL
-                % (call["len"], normalized.strftime("%#I:%M:%S %p"),)
+                self.MULTI_CALL_CALL.format(call["len"], normalized.strftime("%#I:%M:%S %p"))
             )
 
-        return self.MULTI_CALL_BASE % ", ".join(callStrings)
+        return self.MULTI_CALL_BASE.format(", ".join(callStrings))
 
 
 if __name__ == "__main__":

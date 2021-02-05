@@ -28,8 +28,8 @@ class Instance:
         """
         res = None
         try:
-            req = urllib.request.urlopen(self.url % self.lastCheck)
-            # print(self.BASE_URL % self.lastCheck)
+            req = urllib.request.urlopen(self.url.format(self.lastCheck))
+            # print(self.BASE_URL.format(self.lastCheck))
             res = json.loads(req.read().decode())
         except urllib.error.URLError as e:
             print(e)
