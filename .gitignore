@@ -3,3 +3,7 @@
 secrets.json
 
 __pycache__
+
+.idea/
+
+.env

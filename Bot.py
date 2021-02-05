@@ -1,32 +1,44 @@
-import tweepy, json, pytz, Scraper, Set
+import json
+import logging
+import os
 from datetime import datetime, timedelta
 
-VERSION = "0.2.4"
-print("Version %s of EncryptedConvos" % VERSION)
+import pytz
+import tweepy
+
+import Scraper
+import Set
+
+VERSION = "0.3.0"
+
+log = logging.getLogger()
 
 
 class Bot:
-    """The twitter bot.
-    """
+    """The twitter bot."""
 
     # Consts
     SINGLE_CALL_MSG = (
-        "%s second encrypted call at %s. #SeattleProtestComms #ProtestCommsSeattle"
+        "{} second encrypted call at {}. #SeattleProtestComms #ProtestCommsSeattle"
     )
-    MULTI_CALL_BASE = "%s #SeattleProtestComms #ProtestCommsSeattle"
-    MULTI_CALL_CALL = "%s second encrypted call at %s"
+    MULTI_CALL_BASE = "{} #SeattleProtestComms #ProtestCommsSeattle"
+    MULTI_CALL_CALL = "{} second encrypted call at {}"
     TIMEZONE = pytz.timezone("US/Pacific")
     WINDOW_M = 5
-    BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time=%s&filter-type=talkgroup&filter-code=44912,45040,45112,45072,45136"
+    BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}&filter-type=talkgroup&filter-code=44912,45040,45112,45072,45136"
     # DEBUG URL TO GET A LOT OF API RESPONSES
-    # BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time=%s&filter-type=group&filter-code=5ed813629818fe0025c8e245"
+    # BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}&filter-type=group&filter-code=5ed813629818fe0025c8e245"
 
     def __init__(self) -> None:
-        """Initializes the class.
-        """
+        """Initializes the class."""
         self.cachedTweet = None
         self.cachedTime = None
         self.scraper = Scraper.Instance(self.BASE_URL)
+        self.callThreshold = int(os.getenv("CALL_THRESHOLD", 1))
+        self.debug = os.getenv("DEBUG", "true").lower() == "true"
+
+        if self.debug:
+            log.setLevel(logging.DEBUG)
 
         with open("./secrets.json") as f:
             keys = json.load(f)
@@ -40,23 +52,21 @@ class Bot:
         self.interval = Set.Interval(30, self._check)
 
     def _kill(self) -> None:
-        """This kills the c̶r̶a̶b̶  bot.
-        """
+        """This kills the c̶r̶a̶b̶  bot."""
         self.interval.cancel()
         exit(0)
 
     def _check(self) -> None:
-        """Checks the API and sends a tweet if needed.
-        """
+        """Checks the API and sends a tweet if needed."""
         try:
-            print("Checking!: %s" % datetime.now())
+            log.info(f"Checking!: {datetime.now()}")
             json = self.scraper.getJSON()
             try:
-                print("Found %s calls." % len(json["calls"]))
+                log.info(f"Found {len(json['calls'])} calls.")
                 if len(json["calls"]) > 0:
                     self._postTweet(json["calls"])
             except TypeError as e:
-                print(e)
+                log.exception(e)
         except KeyboardInterrupt as e:
             self._kill()
 
@@ -73,16 +83,24 @@ class Bot:
             diff = datetime.now(pytz.utc) - datetime.strptime(
                 call["time"], "%Y-%m-%dT%H:%M:%S.000%z"
             )
-            if not abs(diff.total_seconds()) >= 1.8e3 and call["len"] >= 1:
+            if not abs(diff.total_seconds()) >= 1.8e3:
+                if call["len"] < self.callThreshold:
+                    log.debug(
+                        f"Call of size {call['len']} below threshold ({self.callThreshold})"
+                    )
+                    continue
                 filteredCalls.append(call)
 
-        msg = ""
         if len(filteredCalls) == 1:
             msg = self._formatMessage(filteredCalls[0])
         elif len(filteredCalls) > 1:
             msg = self._formatMultiMessage(filteredCalls)
         else:
             # GTFO if there are no calls to post
+            return
+
+        if self.debug:
+            log.debug(msg)
             return
 
         # Check for a cached tweet, then check if the last tweet was less than the window ago. If the window has expired dereference the cached tweet.
@@ -94,14 +112,14 @@ class Bot:
 
         try:
             if self.cachedTweet != None:
-                print("    " + msg)
+                log.info("    " + msg)
                 self.cachedTweet = self.api.update_status(msg, self.cachedTweet).id
             else:
-                print(msg)
+                log.info(msg)
                 self.cachedTweet = self.api.update_status(msg).id
             self.cachedTime = datetime.now()
         except tweepy.TweepError as e:
-            print(e)
+            log.exception(e)
 
     def _formatMessage(self, call) -> str:
         """Generate a tweet message.
@@ -117,7 +135,7 @@ class Bot:
         # Fuck I hate how computer time works
         localized = date.replace(tzinfo=pytz.utc).astimezone(self.TIMEZONE)
         normalized = self.TIMEZONE.normalize(localized)
-        return self.SINGLE_CALL_MSG % (
+        return self.SINGLE_CALL_MSG.format(
             call["len"],
             normalized.strftime("%#I:%M:%S %p"),
         )
@@ -139,12 +157,19 @@ class Bot:
             localized = date.replace(tzinfo=pytz.utc).astimezone(self.TIMEZONE)
             normalized = self.TIMEZONE.normalize(localized)
             callStrings.append(
-                self.MULTI_CALL_CALL
-                % (call["len"], normalized.strftime("%#I:%M:%S %p"),)
+                self.MULTI_CALL_CALL.format(
+                    call["len"], normalized.strftime("%#I:%M:%S %p")
+                )
             )
 
-        return self.MULTI_CALL_BASE % ", ".join(callStrings)
+        return self.MULTI_CALL_BASE.format(", ".join(callStrings))
 
 
 if __name__ == "__main__":
+    # Format logging
+    logging.basicConfig(
+        format="[%(asctime)s - %(name)s - %(lineno)3d][%(levelname)s] %(message)s",
+        level=logging.INFO,
+    )
+    log.info(f"Version {VERSION} of EncryptedConvos")
     bot = Bot()

@@ -1,14 +1,21 @@
-import json, urllib.request, urllib.error, pytz
+import json
+import logging
+import urllib.error
+import urllib.request
 from datetime import datetime, timedelta
+
+import pytz
+
+
+log = logging.getLogger(__name__)
 
 
 class Instance:
-    """A scraping instance that stores the endpoint, and provides a scrape function.
-    """
+    """A scraping instance that stores the endpoint, and provides a scrape function."""
 
     def __init__(self, url) -> None:
         """Starts the scraper.
-        
+
         Args:
             url (str): The API endpoint to scrape.
         """
@@ -24,11 +31,11 @@ class Instance:
         """
         res = None
         try:
-            req = urllib.request.urlopen(self.url % self.lastCheck)
-            # print(self.BASE_URL % self.lastCheck)
+            req = urllib.request.urlopen(self.url.format(self.lastCheck))
+            # log.debug(self.BASE_URL.format(self.lastCheck))
             res = json.loads(req.read().decode())
         except urllib.error.URLError as e:
-            print(e)
+            log.exception(e)
         self.lastCheck = self._timestamp()
         return res
 

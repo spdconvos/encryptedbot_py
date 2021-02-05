@@ -1,9 +1,13 @@
-import threading, time
+import logging
+import threading
+import time
+
+
+log = logging.getLogger(__name__)
 
 
 class Interval:
-    """A class that loops every interval.
-    """
+    """A class that loops every interval."""
 
     def __init__(self, interval, action) -> None:
         """Initialize the interval loop.
@@ -21,18 +25,16 @@ class Interval:
         thread.start()
 
     def _setInterval(self) -> None:
-        """Does things.
-        """
+        """Does things."""
         next = time.time()
         while not self.stop.wait(next - time.time()):
             next += self.interval
             try:
                 self.action()
             except OSError as e:
-                print(e)
+                log.exception(e)
                 pass
 
     def cancel(self) -> None:
-        """Cancels the interval.
-        """
+        """Cancels the interval."""
         self.stop.set()
