@@ -23,8 +23,6 @@ class Bot:
     )
     MULTI_CALL_BASE = "{} #SeattleProtestComms #ProtestCommsSeattle"
     MULTI_CALL_CALL = "{} second encrypted call at {}"
-    TIMEZONE = pytz.timezone("US/Pacific")
-    WINDOW_M = 5
     BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}&filter-type=talkgroup&filter-code=44912,45040,45112,45072,45136"
     # DEBUG URL TO GET A LOT OF API RESPONSES
     # BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}&filter-type=group&filter-code=5ed813629818fe0025c8e245"
@@ -34,8 +32,11 @@ class Bot:
         self.cachedTweet = None
         self.cachedTime = None
         self.scraper = Scraper.Instance(self.BASE_URL)
+
         self.callThreshold = int(os.getenv("CALL_THRESHOLD", 1))
         self.debug = os.getenv("DEBUG", "true").lower() == "true"
+        self.window_minutes = int(os.getenv("WINDOW_M", 5))
+        self.timezone = pytz.timezone(os.getenv("TIMEZONE", "US/Pacific"))
 
         if self.debug:
             log.setLevel(logging.DEBUG)
@@ -106,7 +107,8 @@ class Bot:
         # Check for a cached tweet, then check if the last tweet was less than the window ago. If the window has expired dereference the cached tweet.
         if (
             self.cachedTime != None
-            and self.cachedTime + timedelta(minutes=self.WINDOW_M) <= datetime.now()
+            and self.cachedTime + timedelta(minutes=self.window_minutes)
+            <= datetime.now()
         ):
             self.cachedTweet = None
 
@@ -133,8 +135,8 @@ class Bot:
         # Get time from the call.
         date = datetime.strptime(call["time"], "%Y-%m-%dT%H:%M:%S.000%z")
         # Fuck I hate how computer time works
-        localized = date.replace(tzinfo=pytz.utc).astimezone(self.TIMEZONE)
-        normalized = self.TIMEZONE.normalize(localized)
+        localized = date.replace(tzinfo=pytz.utc).astimezone(self.timezone)
+        normalized = self.timezone.normalize(localized)
         return self.SINGLE_CALL_MSG.format(
             call["len"],
             normalized.strftime("%#I:%M:%S %p"),
@@ -154,8 +156,8 @@ class Bot:
             # Get time from the call.
             date = datetime.strptime(call["time"], "%Y-%m-%dT%H:%M:%S.000%z")
             # Fuck I hate how computer time works
-            localized = date.replace(tzinfo=pytz.utc).astimezone(self.TIMEZONE)
-            normalized = self.TIMEZONE.normalize(localized)
+            localized = date.replace(tzinfo=pytz.utc).astimezone(self.timezone)
+            normalized = self.timezone.normalize(localized)
             callStrings.append(
                 self.MULTI_CALL_CALL.format(
                     call["len"], normalized.strftime("%#I:%M:%S %p")

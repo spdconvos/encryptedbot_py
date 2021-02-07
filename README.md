@@ -17,6 +17,8 @@ The following aspects of the bot can be tuned with environment variables:
 
  * `CALL_THRESHOLD` (integer) - minimum call duration for the bot to tweet
  * `DEBUG` ("true" or "false") - enable/disable debug logging, debug prevents tweeting
+ * `WINDOW_M` (integer) - number of minutes to re-use the same Twitter thread after a new message
+ * `TIMEZONE` (string) - timezone for localizing message timestamps
 
 ### Docker
 The docker container can be built using `docker build -t openmhz-encrypted .`.
