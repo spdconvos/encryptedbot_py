@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 
@@ -6,11 +5,12 @@ from datetime import datetime, timedelta
 import pytz
 
 import tweepy
+from tweepy.error import TweepError
 
 import Scraper
 import Set
 
-VERSION = "0.3.2"
+VERSION = "1.0.0"
 
 log = logging.getLogger()
 
@@ -39,17 +39,24 @@ class Bot:
         self.window_minutes = int(os.getenv("WINDOW_M", 5))
         self.timezone = pytz.timezone(os.getenv("TIMEZONE", "US/Pacific"))
 
-        if self.debug:
-            log.setLevel(logging.DEBUG)
-
-        with open("./secrets.json") as f:
-            keys = json.load(f)
+        # Does not need to be saved for later.
+        # If the keys aren't in env this will still run.
         auth = tweepy.OAuthHandler(
-            consumer_key=keys["consumer_key"], consumer_secret=keys["consumer_secret"]
+            os.getenv("CONSUMER_KEY", ""), os.getenv("CONSUMER_SECRET", "")
         )
-        # If you don't already have an access token, sucks to be you
-        auth.set_access_token(keys["access_token_key"], keys["access_token_secret"])
+        auth.set_access_token(
+            os.getenv("ACCESS_TOKEN_KEY", ""), os.getenv("ACCESS_TOKEN_SECRET", "")
+        )
         self.api = tweepy.API(auth)
+        # Test the authentication.
+        try:
+            self.api.rate_limit_status()
+        except TweepError as e:
+            if e.api_code == 215:
+                log.error("No keys or bad keys")
+            else:
+                log.error("Other API error: {}".format(e))
+            exit(1)
 
         self.interval = Set.Interval(30, self._check)
 
@@ -79,7 +86,7 @@ class Bot:
             calls (list): The call objects to post about.
         """
 
-        # Filter to make sure that calls are actually recent. There can be a weird behavior of the API returning multiple hours old calls all at once.
+        # Filter to make sure that calls are actually recent. There can be a weird behavior of the API returning multiple hours old calls all at once. Also filters for calls under the length threshold.
         filteredCalls = []
         for call in calls:
             diff = datetime.now(pytz.utc) - datetime.strptime(
@@ -115,10 +122,8 @@ class Bot:
 
         try:
             if self.cachedTweet != None:
-                log.info("    " + msg)
                 self.cachedTweet = self.api.update_status(msg, self.cachedTweet).id
             else:
-                log.info(msg)
                 self.cachedTweet = self.api.update_status(msg).id
             self.cachedTime = datetime.now()
         except tweepy.TweepError as e:
