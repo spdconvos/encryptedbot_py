@@ -22,7 +22,7 @@ The following aspects of the bot can be tuned with environment variables:
 
 ### Docker
 The docker container can be built using `docker build -t openmhz-encrypted .`.
-Be sure to populate the values in the `secrets.json` file first, then run the container with `docker run --rm -v $(pwd)/secrets.json:/app/secrets.json openmhz-encrypted`.
+Be sure to populate the values in the `.env` file first, then run the container with `docker run --rm -v --env-file .env openmhz-encrypted`.
 
 If you want to tweet, you'll need to make a twitter account, apply for developer access, and then generate and save consumer keys and access tokens. Then, populate your `.env` file with these variables:
 ```
