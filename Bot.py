@@ -9,7 +9,7 @@ import tweepy
 import Scraper
 import Set
 
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 
 log = logging.getLogger()
 
