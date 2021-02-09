@@ -1,15 +1,16 @@
 import json
 import logging
 import os
-from datetime import datetime, timedelta
 
+from datetime import datetime, timedelta
 import pytz
+
 import tweepy
 
 import Scraper
 import Set
 
-VERSION = "0.3.1"
+VERSION = "0.3.2"
 
 log = logging.getLogger()
 
@@ -138,8 +139,7 @@ class Bot:
         localized = date.replace(tzinfo=pytz.utc).astimezone(self.timezone)
         normalized = self.timezone.normalize(localized)
         return self.SINGLE_CALL_MSG.format(
-            call["len"],
-            normalized.strftime("%#I:%M:%S %p"),
+            call["len"], normalized.strftime("%#I:%M:%S %p"),
         )
 
     def _formatMultiMessage(self, calls) -> str:
