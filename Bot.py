@@ -48,7 +48,7 @@ class Bot:
             os.getenv("ACCESS_TOKEN_KEY", ""), os.getenv("ACCESS_TOKEN_SECRET", "")
         )
         self.api = tweepy.API(auth)
-        # Test the authentication.
+        # Test the authentication. This will gracefully fail if the keys aren't present.
         try:
             self.api.rate_limit_status()
         except TweepError as e:
