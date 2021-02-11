@@ -10,7 +10,7 @@ from tweepy.error import TweepError
 import Scraper
 import Set
 
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 
 log = logging.getLogger()
 
@@ -77,6 +77,7 @@ class Bot:
             except TypeError as e:
                 log.exception(e)
         except KeyboardInterrupt as e:
+            # Literally impossible to hit which might be an issue? Catching keyboard interrupt could happen in its own thread or something but that sounds complicated 👉👈
             self._kill()
 
     def _postTweet(self, calls) -> None:
@@ -129,6 +130,22 @@ class Bot:
         except tweepy.TweepError as e:
             log.exception(e)
 
+    def _timeString(self, call) -> str:
+        """Generates a time code string for a call.
+
+        Args:
+            call (dict): The call to get time from.
+
+        Returns:
+            str: A timestamp string in I:M:S am/pm format.
+        """
+        # Get time from the call.
+        date = datetime.strptime(call["time"], "%Y-%m-%dT%H:%M:%S.000%z")
+        # Fuck I hate how computer time works
+        localized = date.replace(tzinfo=pytz.utc).astimezone(self.timezone)
+        normalized = self.timezone.normalize(localized)
+        return normalized.strftime("%#I:%M:%S %p")
+
     def _formatMessage(self, call) -> str:
         """Generate a tweet message.
 
@@ -138,14 +155,8 @@ class Bot:
         Returns:
             str: The tweet message.
         """
-        # Get time from the call.
-        date = datetime.strptime(call["time"], "%Y-%m-%dT%H:%M:%S.000%z")
-        # Fuck I hate how computer time works
-        localized = date.replace(tzinfo=pytz.utc).astimezone(self.timezone)
-        normalized = self.timezone.normalize(localized)
-        return self.SINGLE_CALL_MSG.format(
-            call["len"], normalized.strftime("%#I:%M:%S %p"),
-        )
+
+        return self.SINGLE_CALL_MSG.format(call["len"], self._timeString(call),)
 
     def _formatMultiMessage(self, calls) -> str:
         """Generate a tweet body for multiple calls in the same scan.
@@ -158,15 +169,8 @@ class Bot:
         """
         callStrings = []
         for call in calls:
-            # Get time from the call.
-            date = datetime.strptime(call["time"], "%Y-%m-%dT%H:%M:%S.000%z")
-            # Fuck I hate how computer time works
-            localized = date.replace(tzinfo=pytz.utc).astimezone(self.timezone)
-            normalized = self.timezone.normalize(localized)
             callStrings.append(
-                self.MULTI_CALL_CALL.format(
-                    call["len"], normalized.strftime("%#I:%M:%S %p")
-                )
+                self.MULTI_CALL_CALL.format(call["len"], self._timeString(call),)
             )
 
         return self.MULTI_CALL_BASE.format(", ".join(callStrings))
