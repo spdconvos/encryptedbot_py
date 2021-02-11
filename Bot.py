@@ -10,7 +10,7 @@ from tweepy.error import TweepError
 import Scraper
 import Set
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 
 log = logging.getLogger()
 
@@ -58,7 +58,7 @@ class Bot:
                 log.error("Other API error: {}".format(e))
             exit(1)
 
-        self.interval = Set.Interval(30, self._check)
+        self.interval = Set.Interval(90, self._check)
 
     def _kill(self) -> None:
         """This kills the c̶r̶a̶b̶  bot."""
