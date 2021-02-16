@@ -1,9 +1,7 @@
 # EncryptedBot
-A bot that tweets every time Seattle Police make a call over encrypted radio. This bot aims to provide metadata of conversations occurring over encrypted channels instantly. The end goal is allowing non-automated scanners to no longer actively monitor encrypted channels.
+A bot that tweets every time calls are made on radio monitored by OpenMHZ. This bot aims to provide metadata of conversations occurring over radio channels instantly. The end goal is allowing non-automated scanners to no longer actively monitor channels that only expose meta data.
 
-Currently the window for replies is 5 minutes, if nothing is said over encrypted in that window the bot will start a new thread. This window may be adjusted in the future as needed.
-
-This bot might be able to be run on the same account as other automated encryption watchers, please contact me. 
+The bot includes an API endpoint for the encrypted channels of the Seattle Police Department, this can be changed for other localities or radio channels.
 
 if i ported to node. I dont port it bc i did. no i didnt ;)
 
