@@ -12,7 +12,7 @@ from cachetools import TTLCache, ttl
 import Scraper
 import Set
 
-VERSION = "1.1.2"
+VERSION = "1.1.3"
 
 log = logging.getLogger()
 
@@ -36,7 +36,7 @@ class Bot:
         self.debug = os.getenv("DEBUG", "true").lower() == "true"
         self.window_minutes = int(os.getenv("WINDOW_M", 5))
         self.timezone = pytz.timezone(os.getenv("TIMEZONE", "US/Pacific"))
-        # The actual look back is the length of the interval + this lookback + lag compensation. For example: 30+300+45=375 seconds
+        # The actual look back is the length of the interval + this lookback + lag compensation. For example: 300+45=345 seconds
         self.lookback = os.getenv("LOOKBACK_S", 300)
 
         self.cachedTweet = None
