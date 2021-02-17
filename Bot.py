@@ -36,7 +36,7 @@ class Bot:
         self.debug = os.getenv("DEBUG", "true").lower() == "true"
         self.window_minutes = int(os.getenv("WINDOW_M", 5))
         self.timezone = pytz.timezone(os.getenv("TIMEZONE", "US/Pacific"))
-        # The actual look back is the length of the interval + this lookback + lag compensation. For example: 300+45=345 seconds
+        # The actual look back is the length of this lookback + lag compensation. For example: 300+45=345 seconds
         self.lookback = os.getenv("LOOKBACK_S", 300)
 
         self.cachedTweet = None
