@@ -7,6 +7,8 @@ import pytz
 import tweepy
 from tweepy.error import TweepError
 
+import cachetools
+
 import Scraper
 import Set
 
@@ -32,6 +34,7 @@ class Bot:
         """Initializes the class."""
         self.cachedTweet = None
         self.cachedTime = None
+        self.cache = cachetools.TTLCache(ttl=300)
         self.scraper = Scraper.Instance(self.BASE_URL)
 
         self.callThreshold = int(os.getenv("CALL_THRESHOLD", 1))
@@ -58,7 +61,7 @@ class Bot:
                 log.error("Other API error: {}".format(e))
             exit(1)
 
-        self.interval = Set.Interval(90, self._check)
+        self.interval = Set.Interval(30, self._check)
 
     def _kill(self) -> None:
         """This kills the c̶r̶a̶b̶  bot."""
