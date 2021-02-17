@@ -47,6 +47,7 @@ class Instance:
         """
         # There's some delay in the API so you need to delay the timestamp a little.
         # With about 20 minutes of hair pulling "why is the api not returning anything!!!!" frustration I found that 45 seconds was the smallest round-ish number that got returns.
-        time = datetime.now(pytz.utc) - timedelta(seconds=45)
+        # We also scrape back 5 minutes to check for long calls.
+        time = datetime.now(pytz.utc) - timedelta(seconds=345)
         strArray = str(time.timestamp()).split(".")
         return strArray[0] + strArray[1][:3]
