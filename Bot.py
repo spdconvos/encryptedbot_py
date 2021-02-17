@@ -12,7 +12,7 @@ from cachetools import TTLCache, ttl
 import Scraper
 import Set
 
-VERSION = "1.1.0"
+VERSION = "1.1.2"
 
 log = logging.getLogger()
 
@@ -32,15 +32,17 @@ class Bot:
 
     def __init__(self) -> None:
         """Initializes the class."""
-        self.cachedTweet = None
-        self.cachedTime = None
-        self.cache = TTLCache(maxsize=100, ttl=345)
-        self.scraper = Scraper.Instance(self.BASE_URL)
-
         self.callThreshold = int(os.getenv("CALL_THRESHOLD", 1))
         self.debug = os.getenv("DEBUG", "true").lower() == "true"
         self.window_minutes = int(os.getenv("WINDOW_M", 5))
         self.timezone = pytz.timezone(os.getenv("TIMEZONE", "US/Pacific"))
+        # The actual look back is the length of the interval + this lookback + lag compensation. For example: 30+300+45=375 seconds
+        self.lookback = os.getenv("LOOKBACK_S", 300)
+
+        self.cachedTweet = None
+        self.cachedTime = None
+        self.cache = TTLCache(maxsize=100, ttl=self.lookback)
+        self.scraper = Scraper.Instance(self.BASE_URL, self.lookback)
 
         # Does not need to be saved for later.
         # If the keys aren't in env this will still run.
