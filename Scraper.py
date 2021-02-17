@@ -21,6 +21,7 @@ class Instance:
         """
         self.lastCheck = self._timestamp()
         self.url = url
+        self.firstCheck = True
         return
 
     def getJSON(self) -> dict:
@@ -49,5 +50,11 @@ class Instance:
         # With about 20 minutes of hair pulling "why is the api not returning anything!!!!" frustration I found that 45 seconds was the smallest round-ish number that got returns.
         # We also scrape back 5 minutes to check for long calls.
         time = datetime.now(pytz.utc) - timedelta(seconds=345)
+
+        # If it's the first check try to get nothing
+        if self.firstCheck:
+            time = datetime.now(pytz.utc)
+            self.firstCheck = False
+
         strArray = str(time.timestamp()).split(".")
         return strArray[0] + strArray[1][:3]
