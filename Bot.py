@@ -84,7 +84,8 @@ class Bot:
         res = []
         for call in calls:
             # If the call is already in the cache skip.
-            if call["id"] in self.cache.keys():
+            if call["id"] in self.cache:
+
                 continue
             # If it isn't, cache it and return it.
             else:
