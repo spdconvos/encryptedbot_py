@@ -7,7 +7,7 @@ import pytz
 import tweepy
 from tweepy.error import TweepError
 
-from cachetools import TTLCache, ttl
+from cachetools import TTLCache
 
 import Scraper
 import Set
