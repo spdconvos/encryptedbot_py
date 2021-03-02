@@ -7,10 +7,12 @@ import pytz
 import tweepy
 from tweepy.error import TweepError
 
+from cachetools import TTLCache, ttl
+
 import Scraper
 import Set
 
-VERSION = "1.0.2"
+VERSION = "1.1.3"
 
 log = logging.getLogger()
 
@@ -30,14 +32,17 @@ class Bot:
 
     def __init__(self) -> None:
         """Initializes the class."""
-        self.cachedTweet = None
-        self.cachedTime = None
-        self.scraper = Scraper.Instance(self.BASE_URL)
-
         self.callThreshold = int(os.getenv("CALL_THRESHOLD", 1))
         self.debug = os.getenv("DEBUG", "true").lower() == "true"
         self.window_minutes = int(os.getenv("WINDOW_M", 5))
         self.timezone = pytz.timezone(os.getenv("TIMEZONE", "US/Pacific"))
+        # The actual look back is the length of this lookback + lag compensation. For example: 300+45=345 seconds
+        self.lookback = os.getenv("LOOKBACK_S", 300)
+
+        self.cachedTweet = None
+        self.cachedTime = None
+        self.cache = TTLCache(maxsize=100, ttl=self.lookback)
+        self.scraper = Scraper.Instance(self.BASE_URL, self.lookback)
 
         # Does not need to be saved for later.
         # If the keys aren't in env this will still run.
@@ -58,22 +63,47 @@ class Bot:
                 log.error("Other API error: {}".format(e))
             exit(1)
 
-        self.interval = Set.Interval(90, self._check)
+        self.interval = Set.Interval(30, self._check)
 
     def _kill(self) -> None:
         """This kills the c̶r̶a̶b̶  bot."""
         self.interval.cancel()
         exit(0)
 
+    def _getUniqueCalls(self, calls) -> list:
+        """Filters the return from the scraper to only tweet unique calls.
+
+        Works by checking if the cache already has that call ID.
+
+        Args:
+            calls (list): The complete list of calls scraped.
+
+        Returns:
+            list: A filtered list of calls.
+        """
+        res = []
+        for call in calls:
+            # If the call is already in the cache skip.
+            if call["id"] in self.cache:
+
+                continue
+            # If it isn't, cache it and return it.
+            else:
+                # Might want to actually store somthing? Who knows.
+                self.cache.update({call["id"]: 0})
+                res.append(call)
+        return res
+
     def _check(self) -> None:
         """Checks the API and sends a tweet if needed."""
         try:
             log.info(f"Checking!: {datetime.now()}")
             json = self.scraper.getJSON()
+            calls = self._getUniqueCalls(json["calls"])
             try:
-                log.info(f"Found {len(json['calls'])} calls.")
-                if len(json["calls"]) > 0:
-                    self._postTweet(json["calls"])
+                log.info(f"Found {len(calls)} calls.")
+                if len(calls) > 0:
+                    self._postTweet(calls)
             except TypeError as e:
                 log.exception(e)
         except KeyboardInterrupt as e:
