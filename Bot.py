@@ -12,7 +12,7 @@ from cachetools import TTLCache
 import Scraper
 import Set
 
-VERSION = "1.1.4"
+VERSION = "1.1.5"
 
 log = logging.getLogger()
 
@@ -84,13 +84,13 @@ class Bot:
         res = []
         for call in calls:
             # If the call is already in the cache skip.
-            if call["id"] in self.cache.keys():
+            if call["_id"] in self.cache.keys():
 
                 continue
             # If it isn't, cache it and return it.
             else:
                 # Might want to actually store somthing? Who knows.
-                self.cache.update({call["id"]: 0})
+                self.cache.update({call["_id"]: 0})
                 res.append(call)
         return res
 
