@@ -21,7 +21,7 @@ class Instance:
         """
         self.url = url
         self.lookback = lookback
-        self.firstCheck, self.lookbackCache = True
+        self.firstCheck, self.startTimeCache = True
         self.startTime = None
         return
 
@@ -51,10 +51,20 @@ class Instance:
         # We also scrape back 5 minutes to check for long calls.
         time = datetime.now(pytz.utc) - timedelta(seconds=(self.lookback + 45))
 
-        # If it's the first check try to get nothing
+        # If it's the first check cache the startup time
         if self.firstCheck:
-            time = datetime.now(pytz.utc)
+            self.startTime = datetime.now(pytz.utc)
             self.firstCheck = False
+
+        if self.startTimeCache:
+            # If the start up time is later (greater) than the current lookbacked time would be, use the start up time instead.
+            if self.startTime > (
+                datetime.now(pytz.utc) - timedelta(seconds=(self.lookback + 45))
+            ):
+                time = self.startTime
+            # If it isn't stop checking if it is
+            else:
+                self.startTimeCache = False
 
         strArray = str(time.timestamp()).split(".")
         return strArray[0] + strArray[1][:3]
