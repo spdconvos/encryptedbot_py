@@ -21,7 +21,8 @@ class Instance:
         """
         self.url = url
         self.lookback = lookback
-        self.firstCheck = True
+        self.firstCheck, self.lookbackCache = True
+        self.startTime = None
         return
 
     def getJSON(self) -> dict:
