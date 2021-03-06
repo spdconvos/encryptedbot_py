@@ -12,7 +12,7 @@ from cachetools import TTLCache
 import Scraper
 import Set
 
-VERSION = "1.2.2"
+VERSION = "1.3.0"
 
 log = logging.getLogger()
 
@@ -34,6 +34,7 @@ class Bot:
         """Initializes the class."""
         self.callThreshold = int(os.getenv("CALL_THRESHOLD", 1))
         self.debug = os.getenv("DEBUG", "true").lower() == "true"
+        self.reportLatency = os.getenv("REPORT_LATENCY", "false").lower() == "true"
         self.window_minutes = int(os.getenv("WINDOW_M", 5))
         self.timezone = pytz.timezone(os.getenv("TIMEZONE", "US/Pacific"))
         # The actual look back is the length of this lookback + lag compensation. For example: 300+45=345 seconds
@@ -43,6 +44,9 @@ class Bot:
         self.cachedTime = None
         self.cache = TTLCache(maxsize=100, ttl=self.lookback)
         self.scraper = Scraper.Instance(self.BASE_URL, self.lookback)
+
+        if self.reportLatency:
+            self.latency = []
 
         # Does not need to be saved for later.
         # If the keys aren't in env this will still run.
@@ -72,12 +76,9 @@ class Bot:
 
     def _getUniqueCalls(self, calls) -> list:
         """Filters the return from the scraper to only tweet unique calls.
-
         Works by checking if the cache already has that call ID.
-
         Args:
             calls (list): The complete list of calls scraped.
-
         Returns:
             list: A filtered list of calls.
         """
@@ -108,13 +109,18 @@ class Bot:
                     self._postTweet(calls)
             except TypeError as e:
                 log.exception(e)
+                return
         except KeyboardInterrupt as e:
             # Literally impossible to hit which might be an issue? Catching keyboard interrupt could happen in its own thread or something but that sounds complicated 👉👈
             self._kill()
 
+        if self.reportLatency:
+            sum = sum(self.latency).total_seconds()
+            avg = round(sum / len(self.latency), 3)
+            log.info(f"Average latency for the last 100 calls: {avg} seconds")
+
     def _postTweet(self, calls) -> None:
         """Posts a tweet.
-
         Args:
             calls (list): The call objects to post about.
         """
@@ -133,6 +139,12 @@ class Bot:
                     continue
                 filteredCalls.append(call)
 
+                if self.reportLatency:
+                    # Store latency
+                    self.latency.append(diff)
+                    if len(self.latency) > 100:
+                        self.latency.pop(0)
+
         if len(filteredCalls) == 1:
             msg = self._formatMessage(filteredCalls[0])
         elif len(filteredCalls) > 1:
@@ -142,7 +154,7 @@ class Bot:
             return
 
         if self.debug:
-            log.debug(f"Posted: {msg}, latency: {diff}")
+            log.debug(f"Would have posted: {msg}")
             return
 
         # Check for a cached tweet, then check if the last tweet was less than the window ago. If the window has expired dereference the cached tweet.
@@ -164,10 +176,8 @@ class Bot:
 
     def _timeString(self, call) -> str:
         """Generates a time code string for a call.
-
         Args:
             call (dict): The call to get time from.
-
         Returns:
             str: A timestamp string in I:M:S am/pm format.
         """
@@ -180,10 +190,8 @@ class Bot:
 
     def _formatMessage(self, call) -> str:
         """Generate a tweet message.
-
         Args:
             call (dict): The call to tweet about.
-
         Returns:
             str: The tweet message.
         """
@@ -192,10 +200,8 @@ class Bot:
 
     def _formatMultiMessage(self, calls) -> str:
         """Generate a tweet body for multiple calls in the same scan.
-
         Args:
             calls (list): The list of calls to format
-
         Returns:
             str: The tweet body for the list of calls.
         """
