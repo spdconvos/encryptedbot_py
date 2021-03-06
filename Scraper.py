@@ -36,7 +36,7 @@ class Instance:
             req = urllib.request.urlopen(self.url.format(self._timestamp()))
             # log.debug(self.BASE_URL.format(self.lastCheck))
             res = json.loads(req.read().decode())
-        except urllib.error.URLError as e:
+        except (urllib.error.URLError, urllib.error.HTTPError) as e:
             log.exception(e)
         return res
 
