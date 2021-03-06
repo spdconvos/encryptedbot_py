@@ -15,17 +15,18 @@ This API method returns a JSON object. An example of a returned object is [inclu
 ### calls
 This is all I care about. This is a list of call objects.
 
-#### call object description
+#### call object
 | property name | description | type |
-|:-------------:|:-----------:|:----:|
-| _id | OpenMHZ's ID for the call. | String |
+|---------------|-------------|------|
+| \_id | OpenMHZ's ID for the call. | String |
 | talkgroupNUM | The ID for the talk group that this call came from. | Integer |
 | URL | The CDN URL for this call. | String |
 | filename | The relative link for this call. | String |
 | time | The time of the call, the format string is `%Y-%m-%dT%H:%M:%S.000%z`. Timestamp is in UTC. | String |
-| srcList | An unexplored list, might be the radio IDs of the different speakers with time stamps. | List |
+| srcList | A list of radio ID and time stamp objects. `\_id` is an internal OpenMHZ ID. `pos` is the start of the specific radio in the source. The end of a radio "speaking" is not recorded. `src` is the SmartNet ID for the radio. | List |
 | star | The number of stars the call has at the time of the API call | Integer |
 | len | The call length. | Integer |
+Some interesting metadata could be caught from looking at srcList more. Depending on how radios are deployed, radio IDs could be staticly assigned to an officer. Evidence of such a deployment would be officers using their radio off-duty and on-duty with the same ID. If IDs are tied to officers, this could be resolved into badge/serial numbers for speakers if an additional dataset is gathered.
 
 ### direction
 Always newer for calls to this endpoint. Calls are ordered from oldest to newest.
@@ -33,3 +34,4 @@ Always newer for calls to this endpoint. Calls are ordered from oldest to newest
 ## observed weird behaviors
 - sometimes calls from random times will be returned and must be filtered out
 - 0 length calls will sometimes be returned
+- multiple radios will "speak" without actually contributing to the audio
