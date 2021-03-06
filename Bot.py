@@ -12,7 +12,7 @@ from cachetools import TTLCache
 import Scraper
 import Set
 
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 
 log = logging.getLogger()
 
@@ -98,16 +98,16 @@ class Bot:
         """Checks the API and sends a tweet if needed."""
         try:
             log.info(f"Checking!: {datetime.now()}")
-            json = self.scraper.getJSON()
-            if json is None:
-                log.error("No JSON object returned")
-                return
-            calls = self._getUniqueCalls(json["calls"])
             try:
+                json = self.scraper.getJSON()
+                calls = self._getUniqueCalls(json["calls"])
                 log.info(f"Found {len(calls)} calls.")
                 if len(calls) > 0:
                     self._postTweet(calls)
             except TypeError as e:
+                if json == None:
+                    # We already have an error message from the scraper
+                    return
                 log.exception(e)
                 return
         except KeyboardInterrupt as e:
