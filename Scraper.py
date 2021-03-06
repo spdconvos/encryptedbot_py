@@ -21,7 +21,7 @@ class Instance:
         """
         self.url = url
         self.lookback = lookback
-        self.firstCheck, self.startTimeCache = True
+        self.firstCheck = self.startTimeCache = True
         self.startTime = None
         return
 
