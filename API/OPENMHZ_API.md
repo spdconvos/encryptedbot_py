@@ -1,8 +1,13 @@
 # /newer
-This repo includes a semi-novel Open MHZ API call. By hitting the `/{trunk}/calls/newer?time={time}&filter-type={talkgroup|group}&filter-code={talkgroup or group id(s)}` endpoint we get the newest calls.
+This repo includes a semi-novel Open MHZ API call. By hitting the `api.openmhz.com/{system}/calls/newer?time={time}&filter-type={talkgroup|group}&filter-code={talkgroup or group id(s)}` endpoint we get the newest calls.
 
-## {time}
-The time parameter is not in a standard UNIX timestamp!! The parameter is the whole number of seconds of the intended UNIX time with the first three decimal points tacked on at the end.
+| Parameter | Description | Example(s) |
+|-----------|-------------|------------|
+| {system} subdomain | This is the ID for the radio system to get calls from. If you want to use this botin your locality, use the ID for your local radio system. | `kcers1b` |
+| time param | The time parameter is **not** a standard UNIX timestamp!! The parameter is the whole number of seconds of the intended UNIX time with the first three decimal points tacked on at the end, so `1609533015.68102` becomes `1609533015681` or `1932012.16432` becomes `1932012164`.. | `1609533015681` |
+| filter-type param | The type of filter to use. Groups are pre-rolled groups made by OpenMHZ contributors. If your system has all of the encrypted channels in its own group you can use that group. If not use talkgroup. ||
+| filter-code param | The ID(s) of the group or talkgroups you want to check. If `filter-type == "group"` you can only provide one id, the API will error if you provide more than one. If you use the talkgroup filter, you can request a comma seperated list of ids. If you want to adapt this bot to your locality you can get the ID(s) from the URL of an OpenMHZ page. | `3344,3408,44912,45040` or `5ed813629818fe0025c8e245` |
+
 
 ## return
 This API method returns a JSON object. An example of a returned object is [included here](./example.json).
