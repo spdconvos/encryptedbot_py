@@ -26,6 +26,7 @@ This is all I care about. This is a list of call objects.
 | srcList | A list of radio ID and time stamp objects. `\_id` is an internal OpenMHZ ID. `pos` is the start of the specific radio in the source. The end of a radio "speaking" is not recorded. `src` is the SmartNet ID for the radio. | List |
 | star | The number of stars the call has at the time of the API call | Integer |
 | len | The call length. | Integer |
+
 Some interesting metadata could be caught from looking at srcList more. Depending on how radios are deployed, radio IDs could be staticly assigned to an officer. Evidence of such a deployment would be officers using their radio off-duty and on-duty with the same ID. If IDs are tied to officers, this could be resolved into badge/serial numbers for speakers if an additional dataset is gathered.
 
 ### direction
