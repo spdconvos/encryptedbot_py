@@ -12,7 +12,7 @@ from cachetools import TTLCache
 import Scraper
 import Set
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 
 log = logging.getLogger()
 
@@ -139,7 +139,7 @@ class Bot:
             return
 
         if self.debug:
-            log.debug(msg)
+            log.debug(f"Posted: {msg}, latency: {diff}")
             return
 
         # Check for a cached tweet, then check if the last tweet was less than the window ago. If the window has expired dereference the cached tweet.
