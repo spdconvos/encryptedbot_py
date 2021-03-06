@@ -12,7 +12,7 @@ from cachetools import TTLCache
 import Scraper
 import Set
 
-VERSION = "1.2.1"
+VERSION = "1.2.2"
 
 log = logging.getLogger()
 
@@ -98,6 +98,9 @@ class Bot:
         try:
             log.info(f"Checking!: {datetime.now()}")
             json = self.scraper.getJSON()
+            if json is None:
+                log.error("No JSON object returned")
+                return
             calls = self._getUniqueCalls(json["calls"])
             try:
                 log.info(f"Found {len(calls)} calls.")
