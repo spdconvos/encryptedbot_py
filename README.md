@@ -7,7 +7,7 @@ if i ported to node. I dont port it bc i did. no i didnt ;)
 
 ### Further Reading
 - [Open MHZ API research](./API/OPENMHZ_API.md)
-- [Watching SPD bot](https://github.com/watching-spd/umbrella)
+- [Watching SPD Analysis Bot](https://github.com/watching-spd/umbrella)
 
 ### Configuration
 
