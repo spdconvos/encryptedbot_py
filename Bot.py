@@ -12,7 +12,7 @@ from cachetools import TTLCache
 import Scraper
 import Set
 
-VERSION = "1.3.1"
+VERSION = "1.3.2"
 
 log = logging.getLogger()
 
@@ -45,8 +45,7 @@ class Bot:
         self.cache = TTLCache(maxsize=100, ttl=self.lookback)
         self.scraper = Scraper.Instance(self.BASE_URL, self.lookback)
 
-        if self.reportLatency:
-            self.latency = []
+        self.latency = [timedelta(seconds=0)]
 
         # Does not need to be saved for later.
         # If the keys aren't in env this will still run.
