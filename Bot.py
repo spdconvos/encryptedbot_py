@@ -202,7 +202,7 @@ class Bot:
         Returns:
             list: The tweet messages, hopefully right around the character limit.
         """
-        msgs = []
+        msgs: List[str] = []
         temp_msg = ""
         # This feels really clunky. There's gotta be a better way to chunk.
         for call in calls:
