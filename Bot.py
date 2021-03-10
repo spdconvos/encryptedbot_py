@@ -22,12 +22,9 @@ class Bot:
     """The twitter bot."""
 
     # Consts
-    SINGLE_CALL_MSG = (
-        "{} second encrypted call at {}. #SeattleProtestComms #ProtestCommsSeattle"
-    )
-    MULTI_CALL_BASE = "{} #SeattleProtestComms #ProtestCommsSeattle"
     CALL_TEXT = "{} second encrypted call at {}"
     HASHTAGS = "#SeattleProtestComms #ProtestCommsSeattle"
+
     BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}&filter-type=talkgroup&filter-code=44912,45040,45112,45072,45136"
     # DEBUG URL TO GET A LOT OF API RESPONSES
     # BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}&filter-type=group&filter-code=5ed813629818fe0025c8e245"
@@ -146,16 +143,14 @@ class Bot:
                     if len(self.latency) > 100:
                         self.latency.pop(0)
 
-        if len(filteredCalls) == 1:
-            msg = self._formatMessage(filteredCalls[0])
-        elif len(filteredCalls) > 1:
-            msg = self._formatMultiMessage(filteredCalls)
+        if len(filteredCalls) >= 1:
+            msgs = self._formatMessage(filteredCalls)
         else:
             # GTFO if there are no calls to post
             return
 
         if self.debug:
-            log.debug(f"Would have posted: {msg}")
+            log.debug(f"Would have posted: {msgs}")
             return
 
         # Check for a cached tweet, then check if the last tweet was less than the window ago. If the window has expired dereference the cached tweet.
@@ -168,9 +163,18 @@ class Bot:
 
         try:
             if self.cachedTweet != None:
-                self.cachedTweet = self.api.update_status(msg, self.cachedTweet).id
+                for msg in msgs:
+                    # Every time it posts the new ID gets stored so this works
+                    self.cachedTweet = self.api.update_status(msg, self.cachedTweet).id
             else:
-                self.cachedTweet = self.api.update_status(msg).id
+                for index, msg in enumerate(msgs):
+                    if index == 0:
+                        # Since there isn't a cached tweet yet we have to send a non-reply first
+                        self.cachedTweet = self.api.update_status(msg).id
+                    else:
+                        self.cachedTweet = self.api.update_status(
+                            msg, self.cachedTweet
+                        ).id
             self.cachedTime = datetime.now()
         except tweepy.TweepError as e:
             log.exception(e)
@@ -189,30 +193,29 @@ class Bot:
         normalized = self.timezone.normalize(localized)
         return normalized.strftime("%#I:%M:%S %p")
 
-    def _formatMessage(self, call: dict) -> str:
-        """Generate a tweet message.
+    def _formatMessage(self, calls) -> list:
+        """Generates tweet messages.
         Args:
-            call (dict): The call to tweet about.
+            call (list): The calls to tweet about.
         Returns:
-            str: The tweet message.
+            list: The tweet messages, hopefully right around the character limit.
         """
-
-        return self.SINGLE_CALL_MSG.format(call["len"], self._timeString(call),)
-
-    def _formatMultiMessage(self, calls: list) -> str:
-        """Generate a tweet body for multiple calls in the same scan.
-        Args:
-            calls (list): The list of calls to format
-        Returns:
-            str: The tweet body for the list of calls.
-        """
-        callStrings: List[str] = []
+        msgs = []
+        temp_msg = ""
+        # This feels really clunky. There's gotta be a better way to chunk.
         for call in calls:
-            callStrings.append(
-                self.CALL_TEXT.format(call["len"], self._timeString(call),)
+            temp_msg += (
+                self.CALL_TEXT.format(call["len"], self._timeString(call),) + ", "
             )
+            # Check for a range of lengths, this could go horribly wrong if the message goes over 280 characters but idk how to do this better.
+            if (len(temp_msg) + len(self.HASHTAGS)) >= 260 and (
+                len(temp_msg) + len(self.HASHTAGS)
+            ) <= 280:
+                temp_msg = temp_msg[:-2] + " " + self.HASHTAGS
+                msgs.append(temp_msg)
+                temp_msg = ""
 
-        return self.MULTI_CALL_BASE.format(", ".join(callStrings))
+        return msgs
 
 
 if __name__ == "__main__":
