@@ -22,14 +22,12 @@ class Bot:
     """The twitter bot."""
 
     # Consts
-    SINGLE_CALL_MSG = (
-        "{} second encrypted call at {}. #SeattleProtestComms #ProtestCommsSeattle"
-    )
-    MULTI_CALL_BASE = "{} #SeattleProtestComms #ProtestCommsSeattle"
-    MULTI_CALL_CALL = "{} second encrypted call at {}"
+    CALL_TEXT = "{} second encrypted call at {}"
+    HASHTAGS = "#SeattleProtestComms #ProtestCommsSeattle"
+    TWEET_PADDING = 20
     BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}&filter-type=talkgroup&filter-code=44912,45040,45112,45072,45136"
     # DEBUG URL TO GET A LOT OF API RESPONSES
-    # BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}&filter-type=group&filter-code=5ed813629818fe0025c8e245"
+    # BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}"
 
     def __init__(self) -> None:
         """Initializes the class."""
@@ -67,7 +65,7 @@ class Bot:
                 else:
                     log.error("Other API error: {}".format(e))
                 exit(1)
-
+                
         self.interval = Set.Interval(30, self._check)
 
     def _kill(self) -> None:
@@ -146,15 +144,15 @@ class Bot:
                     if len(self.latency) > 100:
                         self.latency.pop(0)
 
-        if len(filteredCalls) == 1:
-            msg = self._formatMessage(filteredCalls[0])
-        elif len(filteredCalls) > 1:
-            msg = self._formatMultiMessage(filteredCalls)
+        msgs: List[str] = []
+        if len(filteredCalls) >= 1:
+            msgs = self._generateTweets(filteredCalls)
         else:
             # GTFO if there are no calls to post
             return
 
         if self.debug:
+            msg = " | ".join(msgs)
             log.debug(f"Would have posted: {msg}")
             return
 
@@ -168,9 +166,18 @@ class Bot:
 
         try:
             if self.cachedTweet != None:
-                self.cachedTweet = self.api.update_status(msg, self.cachedTweet).id
+                for msg in msgs:
+                    # Every time it posts the new ID gets stored so this works
+                    self.cachedTweet = self.api.update_status(msg, self.cachedTweet).id
             else:
-                self.cachedTweet = self.api.update_status(msg).id
+                for index, msg in enumerate(msgs):
+                    if index == 0:
+                        # Since there isn't a cached tweet yet we have to send a non-reply first
+                        self.cachedTweet = self.api.update_status(msg).id
+                    else:
+                        self.cachedTweet = self.api.update_status(
+                            msg, self.cachedTweet
+                        ).id
             self.cachedTime = datetime.now()
         except tweepy.TweepError as e:
             log.exception(e)
@@ -189,30 +196,70 @@ class Bot:
         normalized = self.timezone.normalize(localized)
         return normalized.strftime("%#I:%M:%S %p")
 
-    def _formatMessage(self, call: dict) -> str:
-        """Generate a tweet message.
+    def _chunk(self, callStrings: list) -> list:
+        """Chunks tweets into an acceptable length.
+
+        Chunking. Shamelessly stolen from `SeattleDSA/signal_scanner_bot/twitter.py` :)
+
         Args:
-            call (dict): The call to tweet about.
+            call_strings (list): List of strings derived from calls.
+
         Returns:
-            str: The tweet message.
+            list: A list of tweet strings to post
         """
+        tweetList: List[str] = []
+        baseIndex = 0
 
-        return self.SINGLE_CALL_MSG.format(call["len"], self._timeString(call),)
+        # Instead of spliting on words I want to split along call lines.
+        subTweet: str = ""
+        for index in range(len(callStrings)):
+            if len(tweetList) == 0:
+                subTweet = (
+                    ", ".join(callStrings[baseIndex:index]) + " ... " + self.HASHTAGS
+                )
+            elif index < len(callStrings):
+                subTweet = ", ".join(callStrings[baseIndex:index]) + " ..."
+            elif index == len(callStrings):
+                subTweet = ", ".join(callStrings[baseIndex:index])
 
-    def _formatMultiMessage(self, calls: list) -> str:
-        """Generate a tweet body for multiple calls in the same scan.
+            if len(subTweet) > 280 - self.TWEET_PADDING:
+                lastIndex = index - 1
+                tweetList.append(", ".join(callStrings[baseIndex:lastIndex]) + " ...")
+                baseIndex = lastIndex
+
+        tweetList.append(", ".join(callStrings[baseIndex:]))
+        listLength = len(tweetList)
+        for index in range(len(tweetList)):
+            if index == 0:
+                tweetList[index] += f" {self.HASHTAGS} {index + 1}/{listLength}"
+            else:
+                tweetList[index] += f" {index + 1}/{listLength}"
+
+        return tweetList
+
+    def _generateTweets(self, calls: list) -> list:
+        """Generates tweet messages.
         Args:
-            calls (list): The list of calls to format
+            call (list): The calls to tweet about.
         Returns:
-            str: The tweet body for the list of calls.
+            list: The tweet messages, hopefully right around the character limit.
         """
         callStrings: List[str] = []
+
+        # First, take all of the calls and turn them into strings.
         for call in calls:
             callStrings.append(
-                self.MULTI_CALL_CALL.format(call["len"], self._timeString(call),)
+                self.CALL_TEXT.format(call["len"], self._timeString(call),)
             )
 
-        return self.MULTI_CALL_BASE.format(", ".join(callStrings))
+        tweet = ", ".join(callStrings) + " " + self.HASHTAGS
+        # If we don't have to chunk we can just leave.
+        if len(tweet) <= 280:
+            return [tweet]
+        else:
+            tweetList = self._chunk(callStrings)
+
+        return tweetList
 
 
 if __name__ == "__main__":
