@@ -26,7 +26,8 @@ class Bot:
         "{} second encrypted call at {}. #SeattleProtestComms #ProtestCommsSeattle"
     )
     MULTI_CALL_BASE = "{} #SeattleProtestComms #ProtestCommsSeattle"
-    MULTI_CALL_CALL = "{} second encrypted call at {}"
+    CALL_TEXT = "{} second encrypted call at {}"
+    HASHTAGS = "#SeattleProtestComms #ProtestCommsSeattle"
     BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}&filter-type=talkgroup&filter-code=44912,45040,45112,45072,45136"
     # DEBUG URL TO GET A LOT OF API RESPONSES
     # BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}&filter-type=group&filter-code=5ed813629818fe0025c8e245"
@@ -208,7 +209,7 @@ class Bot:
         callStrings: List[str] = []
         for call in calls:
             callStrings.append(
-                self.MULTI_CALL_CALL.format(call["len"], self._timeString(call),)
+                self.CALL_TEXT.format(call["len"], self._timeString(call),)
             )
 
         return self.MULTI_CALL_BASE.format(", ".join(callStrings))
