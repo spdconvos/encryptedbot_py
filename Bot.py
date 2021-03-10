@@ -143,6 +143,7 @@ class Bot:
                     if len(self.latency) > 100:
                         self.latency.pop(0)
 
+        msgs: List[str] = []
         if len(filteredCalls) >= 1:
             msgs = self._formatMessage(filteredCalls)
         else:
@@ -150,7 +151,8 @@ class Bot:
             return
 
         if self.debug:
-            log.debug(f"Would have posted: {msgs}")
+            msg = ", ".join(msgs)
+            log.debug(f"Would have posted: {msg}")
             return
 
         # Check for a cached tweet, then check if the last tweet was less than the window ago. If the window has expired dereference the cached tweet.
