@@ -27,7 +27,7 @@ class Bot:
     TWEET_PADDING = 20
     BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}&filter-type=talkgroup&filter-code=44912,45040,45112,45072,45136"
     # DEBUG URL TO GET A LOT OF API RESPONSES
-    # BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}&filter-type=group&filter-code=5ed813629818fe0025c8e245"
+    # BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}"
 
     def __init__(self) -> None:
         """Initializes the class."""
@@ -145,13 +145,13 @@ class Bot:
 
         msgs: List[str] = []
         if len(filteredCalls) >= 1:
-            msgs = self._formatMessage(filteredCalls)
+            msgs = self._generateTweets(filteredCalls)
         else:
             # GTFO if there are no calls to post
             return
 
         if self.debug:
-            msg = ", ".join(msgs)
+            msg = " | ".join(msgs)
             log.debug(f"Would have posted: {msg}")
             return
 
@@ -214,46 +214,49 @@ class Bot:
         for index in range(len(callStrings)):
             if len(tweetList) == 0:
                 subTweet = (
-                    ", ".join(callStrings[baseIndex:index]) + " ..." + self.HASHTAGS
+                    ", ".join(callStrings[baseIndex:index]) + " ... " + self.HASHTAGS
                 )
-            elif index < len(tweetList):
+            elif index < len(callStrings):
                 subTweet = ", ".join(callStrings[baseIndex:index]) + " ..."
             elif index == len(callStrings):
                 subTweet = ", ".join(callStrings[baseIndex:index])
 
             if len(subTweet) > 280 - self.TWEET_PADDING:
-                last_index = index - 1
-                tweetList.append(", ".join(callStrings[baseIndex:last_index]))
-                baseIndex = index - 1
+                lastIndex = index - 1
+                tweetList.append(", ".join(callStrings[baseIndex:lastIndex]) + " ...")
+                baseIndex = lastIndex
 
         tweetList.append(", ".join(callStrings[baseIndex:]))
         listLength = len(tweetList)
-        for index, tweet in enumerate(tweetList):
-            tweet += f" {index}/{listLength}"
+        for index in range(len(tweetList)):
+            if index == 0:
+                tweetList[index] += f" {self.HASHTAGS} {index + 1}/{listLength}"
+            else:
+                tweetList[index] += f" {index + 1}/{listLength}"
 
         return tweetList
 
-    def _formatMessage(self, calls: list) -> list:
+    def _generateTweets(self, calls: list) -> list:
         """Generates tweet messages.
         Args:
             call (list): The calls to tweet about.
         Returns:
             list: The tweet messages, hopefully right around the character limit.
         """
-        call_strings: List[str] = []
+        callStrings: List[str] = []
 
         # First, take all of the calls and turn them into strings.
         for call in calls:
-            call_strings.append(
+            callStrings.append(
                 self.CALL_TEXT.format(call["len"], self._timeString(call),)
             )
 
-        tweet = ", ".join(call_strings) + " " + self.HASHTAGS
+        tweet = ", ".join(callStrings) + " " + self.HASHTAGS
         # If we don't have to chunk we can just leave.
         if len(tweet) <= 280:
             return [tweet]
         else:
-            tweetList = self._chunk(call_strings)
+            tweetList = self._chunk(callStrings)
 
         return tweetList
 
