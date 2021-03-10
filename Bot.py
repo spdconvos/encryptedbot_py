@@ -24,7 +24,7 @@ class Bot:
     # Consts
     CALL_TEXT = "{} second encrypted call at {}"
     HASHTAGS = "#SeattleProtestComms #ProtestCommsSeattle"
-
+    TWEET_PADDING = 20
     BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}&filter-type=talkgroup&filter-code=44912,45040,45112,45072,45136"
     # DEBUG URL TO GET A LOT OF API RESPONSES
     # BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}&filter-type=group&filter-code=5ed813629818fe0025c8e245"
@@ -195,29 +195,67 @@ class Bot:
         normalized = self.timezone.normalize(localized)
         return normalized.strftime("%#I:%M:%S %p")
 
-    def _formatMessage(self, calls) -> list:
+    def _chunk(self, callStrings: list) -> list:
+        """Chunks tweets into an acceptable length.
+
+        Chunking. Shamelessly stolen from `SeattleDSA/signal_scanner_bot/twitter.py` :)
+
+        Args:
+            call_strings (list): List of strings derived from calls.
+
+        Returns:
+            list: A list of tweet strings to post
+        """
+        tweetList: List[str] = []
+        baseIndex = 0
+
+        # Instead of spliting on words I want to split along call lines.
+        subTweet: str = ""
+        for index in range(len(callStrings)):
+            if len(tweetList) == 0:
+                subTweet = (
+                    ", ".join(callStrings[baseIndex:index]) + " ..." + self.HASHTAGS
+                )
+            elif index < len(tweetList):
+                subTweet = ", ".join(callStrings[baseIndex:index]) + " ..."
+            elif index == len(callStrings):
+                subTweet = ", ".join(callStrings[baseIndex:index])
+
+            if len(subTweet) > 280 - self.TWEET_PADDING:
+                last_index = index - 1
+                tweetList.append(", ".join(callStrings[baseIndex:last_index]))
+                baseIndex = index - 1
+
+        tweetList.append(", ".join(callStrings[baseIndex:]))
+        listLength = len(tweetList)
+        for index, tweet in enumerate(tweetList):
+            tweet += f" {index}/{listLength}"
+
+        return tweetList
+
+    def _formatMessage(self, calls: list) -> list:
         """Generates tweet messages.
         Args:
             call (list): The calls to tweet about.
         Returns:
             list: The tweet messages, hopefully right around the character limit.
         """
-        msgs: List[str] = []
-        temp_msg = ""
-        # This feels really clunky. There's gotta be a better way to chunk.
-        for call in calls:
-            temp_msg += (
-                self.CALL_TEXT.format(call["len"], self._timeString(call),) + ", "
-            )
-            # Check for a range of lengths, this could go horribly wrong if the message goes over 280 characters but idk how to do this better.
-            if (len(temp_msg) + len(self.HASHTAGS)) >= 260 and (
-                len(temp_msg) + len(self.HASHTAGS)
-            ) <= 280:
-                temp_msg = temp_msg[:-2] + " " + self.HASHTAGS
-                msgs.append(temp_msg)
-                temp_msg = ""
+        call_strings: List[str] = []
 
-        return msgs
+        # First, take all of the calls and turn them into strings.
+        for call in calls:
+            call_strings.append(
+                self.CALL_TEXT.format(call["len"], self._timeString(call),)
+            )
+
+        tweet = ", ".join(call_strings) + " " + self.HASHTAGS
+        # If we don't have to chunk we can just leave.
+        if len(tweet) <= 280:
+            return [tweet]
+        else:
+            tweetList = self._chunk(call_strings)
+
+        return tweetList
 
 
 if __name__ == "__main__":
