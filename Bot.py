@@ -2,6 +2,7 @@ import logging
 import os
 
 from datetime import datetime, timedelta
+from typing import List
 import pytz
 
 import tweepy
@@ -40,8 +41,8 @@ class Bot:
         # The actual look back is the length of this lookback + lag compensation. For example: 300+45=345 seconds
         self.lookback = os.getenv("LOOKBACK_S", 300)
 
-        self.cachedTweet = None
-        self.cachedTime = None
+        self.cachedTweet: int = None
+        self.cachedTime: datetime = None
         self.cache = TTLCache(maxsize=100, ttl=self.lookback)
         self.scraper = Scraper.Instance(self.BASE_URL, self.lookback)
 
@@ -81,7 +82,7 @@ class Bot:
         Returns:
             list: A filtered list of calls.
         """
-        res = []
+        res: List[dict] = []
         for call in calls:
             # If the call is already in the cache skip.
             if call["_id"] in self.cache.keys():
@@ -125,7 +126,7 @@ class Bot:
         """
 
         # Filter to make sure that calls are actually recent. There can be a weird behavior of the API returning multiple hours old calls all at once. Also filters for calls under the length threshold.
-        filteredCalls = []
+        filteredCalls: List[dict] = []
         for call in calls:
             diff = datetime.now(pytz.utc) - datetime.strptime(
                 call["time"], "%Y-%m-%dT%H:%M:%S.000%z"
@@ -204,7 +205,7 @@ class Bot:
         Returns:
             str: The tweet body for the list of calls.
         """
-        callStrings = []
+        callStrings: List[str] = []
         for call in calls:
             callStrings.append(
                 self.MULTI_CALL_CALL.format(call["len"], self._timeString(call),)
