@@ -73,7 +73,7 @@ class Bot:
         self.interval.cancel()
         exit(0)
 
-    def _getUniqueCalls(self, calls) -> list:
+    def _getUniqueCalls(self, calls: dict) -> list:
         """Filters the return from the scraper to only tweet unique calls.
         Works by checking if the cache already has that call ID.
         Args:
@@ -118,7 +118,7 @@ class Bot:
             avg = round(sum / len(self.latency), 3)
             log.info(f"Average latency for the last 100 calls: {avg} seconds")
 
-    def _postTweet(self, calls) -> None:
+    def _postTweet(self, calls: list) -> None:
         """Posts a tweet.
         Args:
             calls (list): The call objects to post about.
@@ -173,7 +173,7 @@ class Bot:
         except tweepy.TweepError as e:
             log.exception(e)
 
-    def _timeString(self, call) -> str:
+    def _timeString(self, call: dict) -> str:
         """Generates a time code string for a call.
         Args:
             call (dict): The call to get time from.
@@ -187,7 +187,7 @@ class Bot:
         normalized = self.timezone.normalize(localized)
         return normalized.strftime("%#I:%M:%S %p")
 
-    def _formatMessage(self, call) -> str:
+    def _formatMessage(self, call: dict) -> str:
         """Generate a tweet message.
         Args:
             call (dict): The call to tweet about.
@@ -197,7 +197,7 @@ class Bot:
 
         return self.SINGLE_CALL_MSG.format(call["len"], self._timeString(call),)
 
-    def _formatMultiMessage(self, calls) -> str:
+    def _formatMultiMessage(self, calls: list) -> str:
         """Generate a tweet body for multiple calls in the same scan.
         Args:
             calls (list): The list of calls to format

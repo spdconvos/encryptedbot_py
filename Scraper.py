@@ -13,11 +13,12 @@ log = logging.getLogger(__name__)
 class Instance:
     """A scraping instance that stores the endpoint, and provides a scrape function."""
 
-    def __init__(self, url, lookback) -> None:
+    def __init__(self, url: str, lookback: float) -> None:
         """Starts the scraper.
 
         Args:
             url (str): The API endpoint to scrape.
+            lookback (float): The amount of seconds to look back.
         """
         self.url = url
         self.lookback = lookback
