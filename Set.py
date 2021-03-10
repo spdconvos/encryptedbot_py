@@ -9,7 +9,7 @@ log = logging.getLogger(__name__)
 class Interval:
     """A class that loops every interval."""
 
-    def __init__(self, interval: float, action: function) -> None:
+    def __init__(self, interval: float, action) -> None:
         """Initialize the interval loop.
 
         Args:

@@ -46,25 +46,26 @@ class Bot:
 
         self.latency = [timedelta(seconds=0)]
 
-        # Does not need to be saved for later.
-        # If the keys aren't in env this will still run.
-        auth = tweepy.OAuthHandler(
-            os.getenv("CONSUMER_KEY", ""), os.getenv("CONSUMER_SECRET", "")
-        )
-        auth.set_access_token(
-            os.getenv("ACCESS_TOKEN_KEY", ""), os.getenv("ACCESS_TOKEN_SECRET", "")
-        )
-        self.api = tweepy.API(auth)
-        # Test the authentication. This will gracefully fail if the keys aren't present.
-        try:
-            self.api.rate_limit_status()
-        except TweepError as e:
-            if e.api_code == 215:
-                log.error("No keys or bad keys")
-            else:
-                log.error("Other API error: {}".format(e))
-            exit(1)
-
+        if not self.debug:
+            # Does not need to be saved for later.
+            # If the keys aren't in env this will still run.
+            auth = tweepy.OAuthHandler(
+                os.getenv("CONSUMER_KEY", ""), os.getenv("CONSUMER_SECRET", "")
+            )
+            auth.set_access_token(
+                os.getenv("ACCESS_TOKEN_KEY", ""), os.getenv("ACCESS_TOKEN_SECRET", "")
+            )
+            self.api = tweepy.API(auth)
+            # Test the authentication. This will gracefully fail if the keys aren't present.
+            try:
+                self.api.rate_limit_status()
+            except TweepError as e:
+                if e.api_code == 215:
+                    log.error("No keys or bad keys")
+                else:
+                    log.error("Other API error: {}".format(e))
+                exit(1)
+                
         self.interval = Set.Interval(30, self._check)
 
     def _kill(self) -> None:
