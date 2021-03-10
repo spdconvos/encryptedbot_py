@@ -13,7 +13,7 @@ from cachetools import TTLCache
 import Scraper
 import Set
 
-VERSION = "1.3.2"
+VERSION = "1.4.0"
 
 log = logging.getLogger()
 
@@ -65,7 +65,7 @@ class Bot:
                 else:
                     log.error("Other API error: {}".format(e))
                 exit(1)
-                
+
         self.interval = Set.Interval(30, self._check)
 
     def _kill(self) -> None:
