@@ -13,7 +13,7 @@ from cachetools import TTLCache
 import Scraper
 import Set
 
-VERSION = "1.4.0"
+VERSION = "1.4.1"
 
 log = logging.getLogger()
 
@@ -144,12 +144,11 @@ class Bot:
                     if len(self.latency) > 100:
                         self.latency.pop(0)
 
-        msgs: List[str] = []
-        if len(filteredCalls) >= 1:
-            msgs = self._generateTweets(filteredCalls)
-        else:
-            # GTFO if there are no calls to post
+        if len(filteredCalls) == 0:
+            # If there's nothing to post, simply leave
             return
+
+        msgs = self._generateTweets(filteredCalls)
 
         if self.debug:
             msg = " | ".join(msgs)
