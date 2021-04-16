@@ -23,7 +23,7 @@ class Bot:
 
     # Consts
     CALL_TEXT = "{} second encrypted call at {}"
-    HASHTAGS = "#SeattleProtestComms #ProtestCommsSeattle"
+    HASHTAGS = "#SeattleEncryptedComms"
     TWEET_PADDING = 20
     BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}&filter-type=talkgroup&filter-code=44912,45040,45112,45072,45136"
     # DEBUG URL TO GET A LOT OF API RESPONSES
