@@ -60,9 +60,9 @@ class Bot:
                 exit(1)
 
         signal(SIGINT, self._kill)
-        self._connectsio()
+        self._connectSIO()
 
-    def _connectsio(self) -> None:
+    def _connectSIO(self) -> None:
         self.sio = socketio.Client()
         self.sio.connect("https://api.openmhz.com/", namespaces=["/"])
         self.sio.wait()
