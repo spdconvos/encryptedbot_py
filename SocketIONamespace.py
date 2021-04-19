@@ -11,25 +11,22 @@ class SocketIONamespace(socketio.ClientNamespace):
         super().__init__(namespace=namespace)
 
     def on_connect(self):
-        self._startCapture
-
-    def _startCapture(self):
-        CONFIG = {
-            "filterCode": "44912,45040,45112,45072,45136",
+        """ config = {
+            "filterCode": [44912, 45040, 45112, 45072, 45136],
             "filterType": "talkgroup",
             "filterName": "OpenMHZ",
             "filterStarred": False,
             "shortName": "kcers1b",
-        }
+        } """
         # DEBUG CONFIG TO GET A LOT OF API RESPONSES
-        # CONFIG = {
-        #     "filterCode": "",
-        #     "filterType": "all",
-        #     "filterName": "OpenMHZ",
-        #     "filterStarred": False,
-        #     "shortName": "kcers1b"
-        # }
-        self.emit("start", CONFIG)
+        config = {
+            "filterCode": "",
+            "filterType": "all",
+            "filterName": "OpenMHZ",
+            "filterStarred": False,
+            "shortName": "kcers1b",
+        }
+        self.emit("start", config)
 
     def on_disconnect(self):
         log.info("Disconnected")
