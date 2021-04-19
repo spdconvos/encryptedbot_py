@@ -66,6 +66,8 @@ class Bot:
                     log.error("Other API error: {}".format(e))
                 exit(1)
 
+    def start(self) -> None:
+        """Start the dang thing."""
         self.interval = Set.Interval(30, self._check)
 
     def _kill(self) -> None:
@@ -262,10 +264,12 @@ class Bot:
 
 
 if __name__ == "__main__":
+    bot = Bot()
+    level = logging.DEBUG if bot.debug else logging.INFO
     # Format logging
     logging.basicConfig(
         format="[%(asctime)s - %(name)s - %(lineno)3d][%(levelname)s] %(message)s",
-        level=logging.INFO,
+        level=level,
     )
     log.info(f"Version {VERSION} of EncryptedConvos")
-    bot = Bot()
+    bot.start()
