@@ -9,6 +9,7 @@ import tweepy
 from tweepy.error import TweepError
 
 import socketio
+from SocketIONamespace import SocketIONamespace
 from signal import signal, SIGINT
 
 import json
@@ -64,30 +65,9 @@ class Bot:
 
     def _connectSIO(self) -> None:
         self.sio = socketio.Client()
-        self.sio.connect("https://api.openmhz.com/", namespaces=["/"])
+        self.sio.connect("https://api.openmhz.com/")
+        self.sio.register_namespace(SocketIONamespace("/"))
         self.sio.wait()
-
-    def _startCapture(self):
-        CONFIG = {
-            "filterCode": "44912,45040,45112,45072,45136",
-            "filterType": "talkgroup",
-            "filterName": "OpenMHZ",
-            "filterStarred": False,
-            "shortName": "kcers1b",
-        }
-        # DEBUG CONFIG TO GET A LOT OF API RESPONSES
-        # CONFIG = {
-        #     "filterCode": "",
-        #     "filterType": "all",
-        #     "filterName": "OpenMHZ",
-        #     "filterStarred": False,
-        #     "shortName": "kcers1b"
-        # }
-        self.sio.emit("start", CONFIG)
-
-    @sio.event
-    def connect(self):
-        self.sio.start_background_task(self._startCapture)
 
     def _kill(self, rec, frame) -> None:
         """This kills the c̶r̶a̶b̶  bot."""
@@ -95,20 +75,6 @@ class Bot:
         self.sio.emit("stop")
         self.sio.disconnect()
         exit(0)
-
-    @sio.event
-    def disconnect(self):
-        log.info("Disconnected")
-
-    @sio.on("new message")
-    def _handleCall(self, data: str):
-        json = json.loads(data)
-        self._postTweet(json)
-
-        if self.reportLatency:
-            sum = sum(self.latency).total_seconds()
-            avg = round(sum / len(self.latency), 3)
-            log.info(f"Average latency for the last 100 calls: {avg} seconds")
 
     def _postTweet(self, call: dict):
         diff = datetime.now(pytz.utc) - datetime.strptime(
