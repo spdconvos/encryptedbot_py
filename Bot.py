@@ -8,10 +8,10 @@ import pytz
 import tweepy
 from tweepy.error import TweepError
 
-from cachetools import TTLCache
+import socketio
+from signal import signal, SIGINT
 
-import Scraper
-import Set
+import json
 
 VERSION = "1.4.1"
 
@@ -25,9 +25,6 @@ class Bot:
     CALL_TEXT = "{} second encrypted call at {}"
     HASHTAGS = "#SeattleProtestComms #ProtestCommsSeattle"
     TWEET_PADDING = 20
-    BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}&filter-type=talkgroup&filter-code=44912,45040,45112,45072,45136"
-    # DEBUG URL TO GET A LOT OF API RESPONSES
-    # BASE_URL = "https://api.openmhz.com/kcers1b/calls/newer?time={}"
 
     def __init__(self) -> None:
         """Initializes the class."""
@@ -36,13 +33,9 @@ class Bot:
         self.reportLatency = os.getenv("REPORT_LATENCY", "false").lower() == "true"
         self.window_minutes = int(os.getenv("WINDOW_M", 5))
         self.timezone = pytz.timezone(os.getenv("TIMEZONE", "US/Pacific"))
-        # The actual look back is the length of this lookback + lag compensation. For example: 300+45=345 seconds
-        self.lookback = os.getenv("LOOKBACK_S", 300)
 
         self.cachedTweet: int = None
         self.cachedTime: datetime = None
-        self.cache = TTLCache(maxsize=100, ttl=self.lookback)
-        self.scraper = Scraper.Instance(self.BASE_URL, self.lookback)
 
         self.latency = [timedelta(seconds=0)]
 
@@ -66,89 +59,77 @@ class Bot:
                     log.error("Other API error: {}".format(e))
                 exit(1)
 
-        self.interval = Set.Interval(30, self._check)
+        signal(SIGINT, self._kill)
+        self._connectsio()
 
-    def _kill(self) -> None:
+    def _connectsio(self) -> None:
+        self.sio = socketio.Client()
+        self.sio.connect("https://api.openmhz.com/", namespaces=["/"])
+        self.sio.wait()
+
+    def _startCapture(self):
+        CONFIG = {
+            "filterCode": "44912,45040,45112,45072,45136",
+            "filterType": "talkgroup",
+            "filterName": "OpenMHZ",
+            "filterStarred": False,
+            "shortName": "kcers1b",
+        }
+        # DEBUG CONFIG TO GET A LOT OF API RESPONSES
+        # CONFIG = {
+        #     "filterCode": "",
+        #     "filterType": "all",
+        #     "filterName": "OpenMHZ",
+        #     "filterStarred": False,
+        #     "shortName": "kcers1b"
+        # }
+        self.sio.emit("start", CONFIG)
+
+    @sio.event
+    def connect(self):
+        self.sio.start_background_task(self._startCapture)
+
+    def _kill(self, rec, frame) -> None:
         """This kills the c̶r̶a̶b̶  bot."""
-        self.interval.cancel()
+        log.info("SIGINT or Ctrl-C hit. Exitting.")
+        self.sio.emit("stop")
+        self.sio.disconnect()
         exit(0)
 
-    def _getUniqueCalls(self, calls: dict) -> list:
-        """Filters the return from the scraper to only tweet unique calls.
-        Works by checking if the cache already has that call ID.
-        Args:
-            calls (list): The complete list of calls scraped.
-        Returns:
-            list: A filtered list of calls.
-        """
-        res: List[dict] = []
-        for call in calls:
-            # If the call is already in the cache skip.
-            if call["_id"] in self.cache.keys():
-                continue
-            # If it isn't, cache it and return it.
-            else:
-                # Might want to actually store somthing? Who knows.
-                self.cache.update({call["_id"]: 0})
-                res.append(call)
-        return res
+    @sio.event
+    def disconnect(self):
+        log.info("Disconnected")
 
-    def _check(self) -> None:
-        """Checks the API and sends a tweet if needed."""
-        try:
-            log.info(f"Checking!: {datetime.now()}")
-            try:
-                json = self.scraper.getJSON()
-                calls = self._getUniqueCalls(json["calls"])
-                log.info(f"Found {len(calls)} calls.")
-                if len(calls) > 0:
-                    self._postTweet(calls)
-            except TypeError as e:
-                if json == None:
-                    # We already have an error message from the scraper
-                    return
-                log.exception(e)
-                return
-        except KeyboardInterrupt as e:
-            # Literally impossible to hit which might be an issue? Catching keyboard interrupt could happen in its own thread or something but that sounds complicated 👉👈
-            self._kill()
+    @sio.on("new message")
+    def _handleCall(self, data: str):
+        json = json.loads(data)
+        self._postTweet(json)
 
         if self.reportLatency:
             sum = sum(self.latency).total_seconds()
             avg = round(sum / len(self.latency), 3)
             log.info(f"Average latency for the last 100 calls: {avg} seconds")
 
-    def _postTweet(self, calls: list) -> None:
-        """Posts a tweet.
-        Args:
-            calls (list): The call objects to post about.
-        """
+    def _postTweet(self, call: dict):
+        diff = datetime.now(pytz.utc) - datetime.strptime(
+            call["time"], "%Y-%m-%dT%H:%M:%S.000%z"
+        )
 
-        # Filter to make sure that calls are actually recent. There can be a weird behavior of the API returning multiple hours old calls all at once. Also filters for calls under the length threshold.
-        filteredCalls: List[dict] = []
-        for call in calls:
-            diff = datetime.now(pytz.utc) - datetime.strptime(
-                call["time"], "%Y-%m-%dT%H:%M:%S.000%z"
+        if abs(diff.total_seconds()) >= 1.8e3:
+            return
+        elif call["len"] < self.callThreshold:
+            log.debug(
+                f"Call of size {call['len']} below threshold ({self.callThreshold})"
             )
-            if not abs(diff.total_seconds()) >= 1.8e3:
-                if call["len"] < self.callThreshold:
-                    log.debug(
-                        f"Call of size {call['len']} below threshold ({self.callThreshold})"
-                    )
-                    continue
-                filteredCalls.append(call)
-
-                if self.reportLatency:
-                    # Store latency
-                    self.latency.append(diff)
-                    if len(self.latency) > 100:
-                        self.latency.pop(0)
-
-        if len(filteredCalls) == 0:
-            # If there's nothing to post, simply leave
             return
 
-        msgs = self._generateTweets(filteredCalls)
+        if self.reportLatency:
+            # Store latency
+            self.latency.append(diff)
+            if len(self.latency) > 100:
+                self.latency.pop(0)
+
+        msgs = self._generateTweets(call)
 
         if self.debug:
             msg = " | ".join(msgs)
@@ -236,20 +217,11 @@ class Bot:
 
         return tweetList
 
-    def _generateTweets(self, calls: list) -> list:
-        """Generates tweet messages.
-        Args:
-            call (list): The calls to tweet about.
-        Returns:
-            list: The tweet messages, hopefully right around the character limit.
-        """
+    def _generateTweets(self, call: dict) -> list:
         callStrings: List[str] = []
 
         # First, take all of the calls and turn them into strings.
-        for call in calls:
-            callStrings.append(
-                self.CALL_TEXT.format(call["len"], self._timeString(call),)
-            )
+        callStrings.append(self.CALL_TEXT.format(call["len"], self._timeString(call),))
 
         tweet = ", ".join(callStrings) + " " + self.HASHTAGS
         # If we don't have to chunk we can just leave.
