@@ -66,7 +66,7 @@ class Bot:
     def _connectSIO(self) -> None:
         self.sio = socketio.Client()
         self.sio.connect("https://api.openmhz.com/")
-        self.sio.register_namespace(SocketIONamespace("/"))
+        self.sio.register_namespace(SocketIONamespace(self, "/"))
         self.sio.wait()
 
     def _kill(self, rec, frame) -> None:
