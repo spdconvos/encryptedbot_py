@@ -14,10 +14,7 @@ def _getSet(srcList: List[dict]) -> List[str]:
     Returns:
         List[str]: Unique source IDs.
     """
-    result = set()
-    for src in srcList:
-        result.add(src["src"])
-    return list(result)
+    return list({src["src"] for src in srcList})
 
 
 def _scrape(sources: List[str]) -> List[str]:
@@ -31,14 +28,14 @@ def _scrape(sources: List[str]) -> List[str]:
     """
     names: List[str] = []
     for source in sources:
-        if source in namecache.keys:
+        if source in namecache.keys():
             names.append(namecache[source])
         else:
             # API stuff here, in progress. Even cache none so the API isn't battered
             name = None
             namecache[source] = name
             names.append(name)
-    return [name for name in names if not name == None]
+    return [name for name in names if name is not None]
 
 
 def getNames(srcList: List[dict]) -> List[str]:
