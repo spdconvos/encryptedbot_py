@@ -10,6 +10,7 @@ from tweepy.error import TweepError
 
 from cachetools import TTLCache
 
+import RadioIDs
 import Scraper
 import Set
 
@@ -249,8 +250,13 @@ class Bot:
 
         # First, take all of the calls and turn them into strings.
         for call in calls:
+            names = RadioIDs.getNames(call["srcList"])
+            log.info(f"{names=}")
             callStrings.append(
-                self.CALL_TEXT.format(call["len"], self._timeString(call),)
+                self.CALL_TEXT.format(
+                    call["len"],
+                    self._timeString(call),
+                )
             )
 
         tweet = ", ".join(callStrings) + " " + self.HASHTAGS
