@@ -6,7 +6,7 @@ from cachetools import TTLCache
 
 
 log = logging.getLogger(__name__)
-namecache = TTLCache(maxsize=100, ttl=60 * 60 * 12)  # 12 hours
+NAMECACHE = TTLCache(maxsize=100, ttl=60 * 60 * 12)  # 12 hours
 
 
 LOOKUP_API = "https://radio-chaser.tech-bloc-sea.dev/radios/get-verbose"
@@ -37,9 +37,10 @@ def _scrape(sources: List[str]) -> List[str]:
     """
     names: List[str] = []
     to_lookup: List[str] = []
+    log.info(f"{NAMECACHE=}")
     for source in sources:
-        if source in namecache:
-            names.append(namecache[source])
+        if source in NAMECACHE:
+            names.append(NAMECACHE[source])
         else:
             to_lookup.append(source)
     if to_lookup:
@@ -47,8 +48,9 @@ def _scrape(sources: List[str]) -> List[str]:
         data = response.json()
         log.debug(f"Data back from API: {data}")
         for source, info in data.items():
-            namecache[str(source)] = info
-            names.append(info)
+            formatted = f"#{info['badge']}: {info['full_name']}"
+            NAMECACHE[str(source)] = formatted
+            names.append(formatted)
 
     log.debug(f"Names found: {names}")
     return names

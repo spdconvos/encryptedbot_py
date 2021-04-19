@@ -251,12 +251,16 @@ class Bot:
         # First, take all of the calls and turn them into strings.
         for call in calls:
             names = RadioIDs.getNames(call["srcList"])
+            names_formatted = ""
+            if names:
+                names_formatted = " (" + ", ".join(names) + ")"
             log.info(f"{names=}")
             callStrings.append(
                 self.CALL_TEXT.format(
                     call["len"],
                     self._timeString(call),
                 )
+                + names_formatted
             )
 
         tweet = ", ".join(callStrings) + " " + self.HASHTAGS
