@@ -10,7 +10,7 @@ class SocketIONamespace(socketio.ClientNamespace):
         self.parent = parent
         super().__init__(namespace=namespace)
 
-    def connect(self):
+    def on_connect(self):
         self._startCapture
 
     def _startCapture(self):
@@ -31,7 +31,7 @@ class SocketIONamespace(socketio.ClientNamespace):
         # }
         self.emit("start", CONFIG)
 
-    def disconnect(self):
+    def on_disconnect(self):
         log.info("Disconnected")
 
     def on_new_message(self, data):
