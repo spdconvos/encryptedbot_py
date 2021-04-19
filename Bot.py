@@ -76,7 +76,7 @@ class Bot:
         self.sio.disconnect()
         exit(0)
 
-    def _postTweet(self, call: dict):
+    def postTweet(self, call: dict):
         diff = datetime.now(pytz.utc) - datetime.strptime(
             call["time"], "%Y-%m-%dT%H:%M:%S.000%z"
         )

@@ -36,7 +36,7 @@ class SocketIONamespace(socketio.ClientNamespace):
 
     def on_new_message(self, data):
         json = json.loads(data)
-        self.parent._postTweet(json)
+        self.parent.postTweet(json)
 
         if self.parent.reportLatency:
             sum = sum(self.parent.latency).total_seconds()
