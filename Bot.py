@@ -14,7 +14,7 @@ from signal import signal, SIGINT
 
 import RadioIDs
 
-VERSION = "2.0.4"
+VERSION = "2.1.0"
 
 log = logging.getLogger()
 
@@ -167,27 +167,25 @@ class Bot:
         Returns:
             list: A list of tweet strings to post
         """
-        callStrings = call.split(" ")
+        words = call.split(" ")
         tweetList: List[str] = []
         baseIndex = 0
 
         subTweet: str = ""
-        for index in range(len(callStrings)):
+        for index in range(len(words)):
             if len(tweetList) == 0:
-                subTweet = (
-                    ", ".join(callStrings[baseIndex:index]) + " ... " + self.HASHTAGS
-                )
-            elif index < len(callStrings):
-                subTweet = ", ".join(callStrings[baseIndex:index]) + " ..."
-            elif index == len(callStrings):
-                subTweet = ", ".join(callStrings[baseIndex:index])
+                subTweet = ", ".join(words[baseIndex:index]) + " ... " + self.HASHTAGS
+            elif index < len(words):
+                subTweet = ", ".join(words[baseIndex:index]) + " ..."
+            elif index == len(words):
+                subTweet = ", ".join(words[baseIndex:index])
 
             if len(subTweet) > 280 - self.TWEET_PADDING:
                 lastIndex = index - 1
-                tweetList.append(", ".join(callStrings[baseIndex:lastIndex]) + " ...")
+                tweetList.append(", ".join(words[baseIndex:lastIndex]) + " ...")
                 baseIndex = lastIndex
 
-        tweetList.append(", ".join(callStrings[baseIndex:]))
+        tweetList.append(", ".join(words[baseIndex:]))
         listLength = len(tweetList)
         for index in range(len(tweetList)):
             if index == 0:
