@@ -9,8 +9,9 @@ import tweepy
 from tweepy.error import TweepError
 
 import socketio
-from SocketIONamespace import SocketIONamespace
 from signal import signal, SIGINT
+
+import json
 
 import RadioIDs
 
@@ -27,6 +28,21 @@ class Bot:
     NAMES_TEXT = "{}: {}"
     HASHTAGS = "#SeattleEncryptedComms"
     TWEET_PADDING = 20
+    CONFIG = {
+        "filterCode": [44912, 45040, 45112, 45072, 45136],
+        "filterType": "talkgroup",
+        "filterName": "OpenMHZ",
+        "filterStarred": False,
+        "shortName": "kcers1b",
+    }
+    """ # DEBUG CONFIG TO GET A LOT OF API RESPONSES
+    config = {
+        "filterCode": "5ed813629818fe0025c8e245",
+        "filterType": "group",
+        "filterName": "OpenMHZ",
+        "filterStarred": False,
+        "shortName": "kcers1b",
+    } """
 
     def __init__(self) -> None:
         """Initializes the class."""
@@ -73,9 +89,26 @@ class Bot:
         """Sets up and connects the socket IO client
         """
         self.sio = socketio.Client()
-        self.sio.register_namespace(SocketIONamespace(self, "/"))
-        self.sio.connect("https://api.openmhz.com/")
+        self.sio.connect("https://api.openmhz.com/", namespaces=["/"])
+        # Register connect handler
+        self.sio.on("connect", self._connectHandler)
+        # Register disonnect handler
+        self.sio.on("disconnect", self._disconnectHandler)
+        # Register message handler because decorators are borked, and further using function names is borked
+        self.sio.on("new message", self._callHandler)
         self.sio.wait()
+
+    def _connectHandler(self) -> None:
+        """Connect event handler, sends start packet.
+        """
+        # Tell socketIO to send us data.
+        self.sio.emit("start", self.CONFIG)
+        log.info("Connected to socket")
+
+    def _disconnectHandler(self) -> None:
+        """Disconnect handler
+        """
+        log.info("Disconnected")
 
     def _kill(self, rec, frame) -> None:
         """This kills the c̶r̶a̶b̶  bot."""
@@ -83,6 +116,21 @@ class Bot:
         self.sio.emit("stop")
         self.sio.disconnect()
         exit(0)
+
+    def _callHandler(self, data):
+        """Message handler
+
+        Args:
+            data (str): The call data in a str
+        """
+        # See, here's why we needed to pass in our own reference and everything about this hurts me.
+        jsonData = json.loads(data)
+        self.postTweet(jsonData)
+
+        if self.reportLatency:
+            sum = sum(self.latency).total_seconds()
+            avg = round(sum / len(self.latency), 3)
+            log.info(f"Average latency for the last 100 calls: {avg} seconds")
 
     def postTweet(self, call: dict):
         """Generates and posts a tweet
