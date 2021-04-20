@@ -156,21 +156,21 @@ class Bot:
         normalized = self.timezone.normalize(localized)
         return normalized.strftime("%#I:%M:%S %p")
 
-    def _chunk(self, callStrings: list) -> list:
+    def _chunk(self, call: str) -> list:
         """Chunks tweets into an acceptable length.
 
         Chunking. Shamelessly stolen from `SeattleDSA/signal_scanner_bot/twitter.py` :)
 
         Args:
-            call_strings (list): List of strings derived from calls.
+            call (str): The call tweet.
 
         Returns:
             list: A list of tweet strings to post
         """
+        callStrings = call.split(" ")
         tweetList: List[str] = []
         baseIndex = 0
 
-        # Instead of spliting on words I want to split along call lines.
         subTweet: str = ""
         for index in range(len(callStrings)):
             if len(tweetList) == 0:
@@ -206,19 +206,25 @@ class Bot:
         Returns:
             list: A list of strings to send off to Twitter.com
         """
-        callStrings: List[str] = []
 
-        names = RadioIDs.getNames(call["srcList"])
-        log.info(f"{names=}")
+        info = RadioIDs.getNames(call["srcList"])
+        log.info(f"{info=}")
         # First, take all of the calls and turn them into strings.
-        callStrings.append(self.CALL_TEXT.format(call["len"], self._timeString(call),))
+        callString = self.CALL_TEXT.format(call["len"], self._timeString(call),)
 
-        tweet = ", ".join(callStrings) + " " + self.HASHTAGS
+        peopleStrings: list[str] = []
+        for person in info:
+            peopleStrings.append(
+                self.NAMES_TEXT.format(person["badge"], person["full_name"],)
+            )
+
+        tweet = "{} ({}) {}".format(callString, ",".join(peopleStrings), self.HASHTAGS,)
+
         # If we don't have to chunk we can just leave.
         if len(tweet) <= 280:
             return [tweet]
         else:
-            tweetList = self._chunk(callStrings)
+            tweetList = self._chunk()
 
         return tweetList
 
