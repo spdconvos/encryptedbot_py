@@ -1,21 +1,16 @@
-import logging
-import os
+import logging, os
 
 from datetime import datetime, timedelta
 from typing import List
-import pytz
 
-import tweepy
+import tweepy, json, pytz, socketio
 from tweepy.error import TweepError
 
-import socketio
 from signal import signal, SIGINT
-
-import json
 
 import RadioIDs
 
-VERSION = "2.1.4"
+VERSION = "2.1.5"
 
 log = logging.getLogger()
 
@@ -127,14 +122,14 @@ class Bot:
         """
         # See, here's why we needed to pass in our own reference and everything about this hurts me.
         jsonData = json.loads(data)
-        self.postTweet(jsonData)
+        self._postTweet(jsonData)
 
         if self.reportLatency:
             sum = sum(self.latency).total_seconds()
             avg = round(sum / len(self.latency), 3)
             log.info(f"Average latency for the last 100 calls: {avg} seconds")
 
-    def postTweet(self, call: dict):
+    def _postTweet(self, call: dict):
         """Generates and posts a tweet
 
         Args:
