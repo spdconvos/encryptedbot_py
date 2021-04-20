@@ -12,6 +12,8 @@ import socketio
 from SocketIONamespace import SocketIONamespace
 from signal import signal, SIGINT
 
+import RadioIDs
+
 VERSION = "2.0.3"
 
 log = logging.getLogger()
@@ -205,6 +207,8 @@ class Bot:
         """
         callStrings: List[str] = []
 
+        names = RadioIDs.getNames(call["srcList"])
+        log.info(f"{names=}")
         # First, take all of the calls and turn them into strings.
         callStrings.append(self.CALL_TEXT.format(call["len"], self._timeString(call),))
 
