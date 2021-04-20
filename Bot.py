@@ -15,7 +15,7 @@ import json
 
 import RadioIDs
 
-VERSION = "2.1.3"
+VERSION = "2.1.4"
 
 log = logging.getLogger()
 
@@ -36,9 +36,9 @@ class Bot:
         "shortName": "kcers1b",
     }
     """ # DEBUG CONFIG TO GET A LOT OF API RESPONSES
-    config = {
-        "filterCode": "5ed813629818fe0025c8e245",
-        "filterType": "group",
+    CONFIG = {
+        "filterCode": "",
+        "filterType": "all",
         "filterName": "OpenMHZ",
         "filterStarred": False,
         "shortName": "kcers1b",
@@ -89,13 +89,15 @@ class Bot:
         """Sets up and connects the socket IO client
         """
         self.sio = socketio.Client()
-        self.sio.connect("https://api.openmhz.com/", namespaces=["/"])
+
         # Register connect handler
         self.sio.on("connect", self._connectHandler)
         # Register disonnect handler
         self.sio.on("disconnect", self._disconnectHandler)
         # Register message handler because decorators are borked, and further using function names is borked
         self.sio.on("new message", self._callHandler)
+
+        self.sio.connect("https://api.openmhz.com/", namespaces=["/"])
         self.sio.wait()
 
     def _connectHandler(self) -> None:
