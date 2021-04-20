@@ -12,7 +12,7 @@ import socketio
 from SocketIONamespace import SocketIONamespace
 from signal import signal, SIGINT
 
-VERSION = "2.0.0"
+VERSION = "2.0.1"
 
 log = logging.getLogger()
 
@@ -22,7 +22,7 @@ class Bot:
 
     # Consts
     CALL_TEXT = "{} second encrypted call at {}"
-    HASHTAGS = "#SeattleProtestComms #ProtestCommsSeattle"
+    HASHTAGS = "#SeattleEncryptedComms"
     TWEET_PADDING = 20
 
     def __init__(self) -> None:
