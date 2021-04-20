@@ -14,7 +14,7 @@ from signal import signal, SIGINT
 
 import RadioIDs
 
-VERSION = "2.0.3"
+VERSION = "2.0.4"
 
 log = logging.getLogger()
 
@@ -24,6 +24,7 @@ class Bot:
 
     # Consts
     CALL_TEXT = "{} second encrypted call at {}"
+    NAMES_TEXT = "{}: {}"
     HASHTAGS = "#SeattleEncryptedComms"
     TWEET_PADDING = 20
 
