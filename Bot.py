@@ -212,9 +212,10 @@ class Bot:
 
         peopleStrings: list[str] = []
         for person in info:
-            peopleStrings.append(
-                self.NAMES_TEXT.format(person["badge"], person["full_name"],)
-            )
+            if person is not None:
+                peopleStrings.append(
+                    self.NAMES_TEXT.format(person["badge"], person["full_name"],)
+                )
 
         if peopleStrings:
             tweet = "{} ({}) {}".format(

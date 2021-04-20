@@ -47,7 +47,7 @@ def _scrape(sources: List[str]) -> List[str]:
             namecache[str(source)] = info
             names.append(info)
 
-    return [name for name in names if name is not None]
+    return names
 
 
 def getNames(srcList: List[dict]) -> List[str]:
