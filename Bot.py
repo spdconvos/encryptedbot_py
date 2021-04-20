@@ -12,7 +12,7 @@ import socketio
 from SocketIONamespace import SocketIONamespace
 from signal import signal, SIGINT
 
-VERSION = "2.0.1"
+VERSION = "2.0.2"
 
 log = logging.getLogger()
 
@@ -58,10 +58,13 @@ class Bot:
                     log.error("Other API error: {}".format(e))
                 exit(1)
 
+        # Register interput handler
         signal(SIGINT, self._kill)
         self._connectSIO()
 
     def _connectSIO(self) -> None:
+        """Sets up and connects the socket IO client
+        """
         self.sio = socketio.Client()
         self.sio.register_namespace(SocketIONamespace(self, "/"))
         self.sio.connect("https://api.openmhz.com/")
@@ -75,10 +78,16 @@ class Bot:
         exit(0)
 
     def postTweet(self, call: dict):
+        """Generates and posts a tweet
+
+        Args:
+            call (dict): The call to post about
+        """
         diff = datetime.now(pytz.utc) - datetime.strptime(
             call["time"], "%Y-%m-%dT%H:%M:%S.000%z"
         )
 
+        # Check for weird old calls
         if abs(diff.total_seconds()) >= 1.8e3:
             return
         elif call["len"] < self.callThreshold:
@@ -182,6 +191,14 @@ class Bot:
         return tweetList
 
     def _generateTweets(self, call: dict) -> list:
+        """Generates tweet(s).
+
+        Args:
+            call (dict): The call to post about.
+
+        Returns:
+            list: A list of strings to send off to Twitter.com
+        """
         callStrings: List[str] = []
 
         # First, take all of the calls and turn them into strings.
