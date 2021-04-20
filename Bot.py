@@ -12,9 +12,7 @@ import socketio
 from SocketIONamespace import SocketIONamespace
 from signal import signal, SIGINT
 
-import json
-
-VERSION = "1.4.1"
+VERSION = "2.0.0"
 
 log = logging.getLogger()
 
