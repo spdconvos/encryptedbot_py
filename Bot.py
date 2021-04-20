@@ -14,7 +14,7 @@ from signal import signal, SIGINT
 
 import RadioIDs
 
-VERSION = "2.1.1"
+VERSION = "2.1.2"
 
 log = logging.getLogger()
 
