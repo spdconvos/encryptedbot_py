@@ -12,7 +12,7 @@ import socketio
 from SocketIONamespace import SocketIONamespace
 from signal import signal, SIGINT
 
-VERSION = "2.0.2"
+VERSION = "2.0.3"
 
 log = logging.getLogger()
 
@@ -60,6 +60,10 @@ class Bot:
 
         # Register interput handler
         signal(SIGINT, self._kill)
+
+    def start(self) -> None:
+        """Start the bot.
+        """
         self._connectSIO()
 
     def _connectSIO(self) -> None:
@@ -216,9 +220,11 @@ class Bot:
 
 if __name__ == "__main__":
     # Format logging
+    bot = Bot()
+    level = logging.DEBUG if bot.debug else logging.INFO
     logging.basicConfig(
         format="[%(asctime)s - %(name)s - %(lineno)3d][%(levelname)s] %(message)s",
-        level=logging.INFO,
+        level=level,
     )
     log.info(f"Version {VERSION} of EncryptedConvos")
-    bot = Bot()
+    bot.start()
