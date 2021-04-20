@@ -10,7 +10,7 @@ from signal import signal, SIGINT
 
 import RadioIDs
 
-VERSION = "2.1.5"
+VERSION = "2.1.6"
 
 log = logging.getLogger()
 
@@ -50,7 +50,7 @@ class Bot:
         self.cachedTweet: int = None
         self.cachedTime: datetime = None
 
-        self.latency = [timedelta(seconds=0)]
+        self.latency: List[timedelta] = []
 
         if not self.debug:
             # Does not need to be saved for later.
@@ -163,7 +163,7 @@ class Bot:
 
         # Check for a cached tweet, then check if the last tweet was less than the window ago. If the window has expired dereference the cached tweet.
         if (
-            self.cachedTime != None
+            self.cachedTime is not None
             and self.cachedTime + timedelta(minutes=self.window_minutes)
             <= datetime.now()
         ):
