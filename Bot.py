@@ -14,7 +14,7 @@ from signal import signal, SIGINT
 
 import RadioIDs
 
-VERSION = "2.1.0"
+VERSION = "2.1.1"
 
 log = logging.getLogger()
 
@@ -216,7 +216,12 @@ class Bot:
                 self.NAMES_TEXT.format(person["badge"], person["full_name"],)
             )
 
-        tweet = "{} ({}) {}".format(callString, ",".join(peopleStrings), self.HASHTAGS,)
+        if peopleStrings:
+            tweet = "{} ({}) {}".format(
+                callString, ",".join(peopleStrings), self.HASHTAGS,
+            )
+        else:
+            tweet = "{} {}".format(callString, self.HASHTAGS,)
 
         # If we don't have to chunk we can just leave.
         if len(tweet) <= 280:
