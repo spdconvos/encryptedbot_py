@@ -46,6 +46,7 @@ def _scrape(sources: List[str]) -> List[str]:
         for source, info in data.items():
             namecache[str(source)] = info
             names.append(info)
+            log.info(f"Found names: {names}")
 
     return names
 
@@ -53,5 +54,5 @@ def _scrape(sources: List[str]) -> List[str]:
 def getNames(srcList: List[dict]) -> List[str]:
     sources = _getSet(srcList)
     names = _scrape(sources)
-    log.info(f"Found {len(names)}/{len(srcList)} names")
+    log.info(f"Found {len(names)}/{len(sources)} names")
     return names
