@@ -10,7 +10,7 @@ from signal import signal, SIGINT
 
 import RadioIDs
 
-VERSION = "2.1.6"
+VERSION = "2.1.7"
 
 log = logging.getLogger()
 
@@ -125,8 +125,8 @@ class Bot:
         self._postTweet(jsonData)
 
         if self.reportLatency:
-            sum = sum(self.latency).total_seconds()
-            avg = round(sum / len(self.latency), 3)
+            latencySum = sum(self.latency).total_seconds()
+            avg = round(latencySum / len(self.latency), 3)
             log.info(f"Average latency for the last 100 calls: {avg} seconds")
 
     def _postTweet(self, call: dict):
