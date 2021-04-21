@@ -46,7 +46,8 @@ def _scrape(sources: List[str]) -> List[str]:
         for source, info in data.items():
             namecache[str(source)] = info
             names.append(info)
-            log.info(f"Found names: {names}")
+    if names:
+        log.info(f"Found names: {names}")
 
     return names
 
