@@ -20,7 +20,7 @@ class Bot:
 
     # Consts
     CALL_TEXT = "{} second encrypted call at {}"
-    NAMES_TEXT = "{}: {}"
+    NAMES_TEXT = "#{}: {}"
     HASHTAGS = "#SeattleEncryptedComms"
     TWEET_PADDING = 20
     CONFIG = {
