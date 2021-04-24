@@ -1,5 +1,5 @@
 # /newer
-This repo includes a semi-novel Open MHZ API call. By hitting the `api.openmhz.com/{system}/calls/newer?time={time}&filter-type={talkgroup|group}&filter-code={talkgroup or group id(s)}` endpoint we get the newest calls.
+This repo used to include a Open MHZ API call. By hitting the `api.openmhz.com/{system}/calls/newer?time={time}&filter-type={talkgroup|group}&filter-code={talkgroup or group id(s)}` endpoint we get the newest calls.
 
 | Parameter | Description | Example(s) |
 |-----------|-------------|------------|
@@ -36,3 +36,6 @@ Always newer for calls to this endpoint. Calls are ordered from oldest to newest
 - sometimes calls from random times will be returned and must be filtered out
 - 0 length calls will sometimes be returned
 - multiple radios will "speak" without actually contributing to the audio
+
+# Socket.io
+🔜
