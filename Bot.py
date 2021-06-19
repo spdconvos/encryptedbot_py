@@ -10,7 +10,7 @@ from signal import signal, SIGINT
 
 import RadioIDs
 
-VERSION = "2.1.8"
+VERSION = "2.1.9"
 
 log = logging.getLogger()
 
@@ -264,7 +264,7 @@ class Bot:
 
         if peopleStrings:
             tweet = "{} ({}) {}".format(
-                callString, ", ".join(peopleStrings), self.HASHTAGS,
+                callString, "; ".join(peopleStrings), self.HASHTAGS,
             )
         else:
             tweet = "{} {}".format(callString, self.HASHTAGS,)
