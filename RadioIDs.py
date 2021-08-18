@@ -1,6 +1,5 @@
 import logging
 from typing import List
-
 import requests
 from cachetools import TTLCache
 
@@ -23,13 +22,13 @@ def _getSet(srcList: List[dict]) -> List[str]:
 
 
 def _scrape(sources: List[str]) -> List[str]:
-    """[summary]
+    """Scrapes the api end point and returns a list of names.
 
     Args:
-        sources (List[str]): [description]
+        sources (List[str]): A list of ID strings from a call.
 
     Returns:
-        List[str]: [description]
+        List[str]: A list of names gotten from the IDs provided
     """
     names: List[str] = []
     toLookup: List[str] = []
@@ -53,6 +52,14 @@ def _scrape(sources: List[str]) -> List[str]:
 
 
 def getNames(srcList: List[dict]) -> List[str]:
+    """Gets the names corresponds to the provided radio IDs.
+
+    Args:
+        srcList (List[dict]): List of radio ID entries from the OpenMHZ API.
+
+    Returns:
+        List[str]: The list of names that corresponds to the srcList, if such a list exists.
+    """
     sources = _getSet(srcList)
     names = _scrape(sources)
     log.info(f"Found {len(names)}/{len(sources)} names")
