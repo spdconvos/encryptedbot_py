@@ -1,16 +1,13 @@
 import logging, os
-
 from datetime import datetime, timedelta
 from typing import List
-
 import tweepy, json, pytz, socketio
 from tweepy.error import TweepError
-
 from signal import signal, SIGINT
 
 import RadioIDs
 
-VERSION = "2.1.9"
+VERSION = "2.1.10"
 
 log = logging.getLogger()
 
@@ -76,18 +73,16 @@ class Bot:
         signal(SIGINT, self._kill)
 
     def start(self) -> None:
-        """Start the bot.
-        """
+        """Start the bot."""
         self._connectSIO()
 
     def _connectSIO(self) -> None:
-        """Sets up and connects the socket IO client
-        """
+        """Sets up and connects the socket IO client"""
         self.sio = socketio.Client()
 
         # Register connect handler
         self.sio.on("connect", self._connectHandler)
-        # Register disonnect handler
+        # Register disconnect handler
         self.sio.on("disconnect", self._disconnectHandler)
         # Register message handler because decorators are borked, and further using function names is borked
         self.sio.on("new message", self._callHandler)
@@ -96,15 +91,13 @@ class Bot:
         self.sio.wait()
 
     def _connectHandler(self) -> None:
-        """Connect event handler, sends start packet.
-        """
+        """Connect event handler, sends start packet."""
         # Tell socketIO to send us data.
         self.sio.emit("start", self.CONFIG)
         log.info("Connected to socket")
 
     def _disconnectHandler(self) -> None:
-        """Disconnect handler
-        """
+        """Disconnect handler"""
         log.info("Disconnected")
 
     def _kill(self, rec, frame) -> None:
@@ -253,21 +246,32 @@ class Bot:
         info = RadioIDs.getNames(call["srcList"])
         log.info(f"{info=}")
         # First, take all of the calls and turn them into strings.
-        callString = self.CALL_TEXT.format(call["len"], self._timeString(call),)
+        callString = self.CALL_TEXT.format(
+            call["len"],
+            self._timeString(call),
+        )
 
         peopleStrings: list[str] = []
         for person in info:
             if person is not None:
                 peopleStrings.append(
-                    self.NAMES_TEXT.format(person["badge"], person["full_name"],)
+                    self.NAMES_TEXT.format(
+                        person["badge"],
+                        person["full_name"],
+                    )
                 )
 
         if peopleStrings:
             tweet = "{} ({}) {}".format(
-                callString, "; ".join(peopleStrings), self.HASHTAGS,
+                callString,
+                "; ".join(peopleStrings),
+                self.HASHTAGS,
             )
         else:
-            tweet = "{} {}".format(callString, self.HASHTAGS,)
+            tweet = "{} {}".format(
+                callString,
+                self.HASHTAGS,
+            )
 
         # If we don't have to chunk we can just leave.
         if len(tweet) <= 280:
