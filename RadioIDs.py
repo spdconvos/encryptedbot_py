@@ -1,6 +1,5 @@
-import logging
+import logging, requests
 from typing import List
-import requests
 from cachetools import TTLCache
 
 log = logging.getLogger(__name__)
