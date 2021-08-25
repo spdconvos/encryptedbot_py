@@ -7,7 +7,7 @@ from signal import signal, SIGINT
 
 import RadioIDs
 
-VERSION = "2.1.10"
+VERSION = "2.1.11"
 
 log = logging.getLogger()
 
@@ -40,14 +40,11 @@ class Bot:
         """Initializes the class."""
         self.callThreshold = int(os.getenv("CALL_THRESHOLD", 1))
         self.debug = os.getenv("DEBUG", "true").lower() == "true"
-        self.reportLatency = os.getenv("REPORT_LATENCY", "false").lower() == "true"
         self.window_minutes = int(os.getenv("WINDOW_M", 5))
         self.timezone = pytz.timezone(os.getenv("TIMEZONE", "US/Pacific"))
 
         self.cachedTweet: int = None
         self.cachedTime: datetime = None
-
-        self.latency: List[timedelta] = []
 
         if not self.debug:
             # Does not need to be saved for later.
@@ -117,11 +114,6 @@ class Bot:
         jsonData = json.loads(data)
         self._postTweet(jsonData)
 
-        if self.reportLatency:
-            latencySum = sum(self.latency).total_seconds()
-            avg = round(latencySum / len(self.latency), 3)
-            log.info(f"Average latency for the last 100 calls: {avg} seconds")
-
     def _postTweet(self, call: dict):
         """Generates and posts a tweet
 
@@ -140,12 +132,6 @@ class Bot:
                 f"Call of size {call['len']} below threshold ({self.callThreshold})"
             )
             return
-
-        if self.reportLatency:
-            # Store latency
-            self.latency.append(diff)
-            if len(self.latency) > 100:
-                self.latency.pop(0)
 
         msgs = self._generateTweets(call)
 
