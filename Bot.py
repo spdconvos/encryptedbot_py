@@ -7,7 +7,7 @@ from signal import signal, SIGINT
 
 import RadioIDs
 
-VERSION = "2.1.11"
+VERSION = "2.1.12"
 
 log = logging.getLogger()
 
@@ -43,8 +43,8 @@ class Bot:
         self.window_minutes = int(os.getenv("WINDOW_M", 5))
         self.timezone = pytz.timezone(os.getenv("TIMEZONE", "US/Pacific"))
 
-        self.cachedTweet: int = None
-        self.cachedTime: datetime = None
+        self._cachedTweet: int = None
+        self._cachedTime: datetime = None
 
         if not self.debug:
             # Does not need to be saved for later.
@@ -55,10 +55,10 @@ class Bot:
             auth.set_access_token(
                 os.getenv("ACCESS_TOKEN_KEY", ""), os.getenv("ACCESS_TOKEN_SECRET", "")
             )
-            self.api = tweepy.API(auth)
+            self._api = tweepy.API(auth)
             # Test the authentication. This will gracefully fail if the keys aren't present.
             try:
-                self.api.rate_limit_status()
+                self._api.rate_limit_status()
             except TweepError as e:
                 if e.api_code == 215:
                     log.error("No keys or bad keys")
@@ -75,22 +75,22 @@ class Bot:
 
     def _connectSIO(self) -> None:
         """Sets up and connects the socket IO client"""
-        self.sio = socketio.Client()
+        self._sio = socketio.Client()
 
         # Register connect handler
-        self.sio.on("connect", self._connectHandler)
+        self._sio.on("connect", self._connectHandler)
         # Register disconnect handler
-        self.sio.on("disconnect", self._disconnectHandler)
+        self._sio.on("disconnect", self._disconnectHandler)
         # Register message handler because decorators are borked, and further using function names is borked
-        self.sio.on("new message", self._callHandler)
+        self._sio.on("new message", self._callHandler)
 
-        self.sio.connect("https://api.openmhz.com/", namespaces=["/"])
-        self.sio.wait()
+        self._sio.connect("https://api.openmhz.com/", namespaces=["/"])
+        self._sio.wait()
 
     def _connectHandler(self) -> None:
         """Connect event handler, sends start packet."""
         # Tell socketIO to send us data.
-        self.sio.emit("start", self.CONFIG)
+        self._sio.emit("start", self.CONFIG)
         log.info("Connected to socket")
 
     def _disconnectHandler(self) -> None:
@@ -100,11 +100,11 @@ class Bot:
     def _kill(self, rec, frame) -> None:
         """This kills the c̶r̶a̶b̶  bot."""
         log.info("SIGINT or Ctrl-C hit. Exitting.")
-        self.sio.emit("stop")
-        self.sio.disconnect()
+        self._sio.emit("stop")
+        self._sio.disconnect()
         exit(0)
 
-    def _callHandler(self, data):
+    def _callHandler(self, data) -> None:
         """Message handler
 
         Args:
@@ -114,7 +114,7 @@ class Bot:
         jsonData = json.loads(data)
         self._postTweet(jsonData)
 
-    def _postTweet(self, call: dict):
+    def _postTweet(self, call: dict) -> None:
         """Generates and posts a tweet
 
         Args:
@@ -142,27 +142,29 @@ class Bot:
 
         # Check for a cached tweet, then check if the last tweet was less than the window ago. If the window has expired dereference the cached tweet.
         if (
-            self.cachedTime is not None
-            and self.cachedTime + timedelta(minutes=self.window_minutes)
+            self._cachedTime is not None
+            and self._cachedTime + timedelta(minutes=self.window_minutes)
             <= datetime.now()
         ):
-            self.cachedTweet = None
+            self._cachedTweet = None
 
         try:
-            if self.cachedTweet != None:
+            if self._cachedTweet != None:
                 for msg in msgs:
                     # Every time it posts the new ID gets stored so this works
-                    self.cachedTweet = self.api.update_status(msg, self.cachedTweet).id
+                    self._cachedTweet = self._api.update_status(
+                        msg, self._cachedTweet
+                    ).id
             else:
                 for index, msg in enumerate(msgs):
                     if index == 0:
                         # Since there isn't a cached tweet yet we have to send a non-reply first
-                        self.cachedTweet = self.api.update_status(msg).id
+                        self._cachedTweet = self._api.update_status(msg).id
                     else:
-                        self.cachedTweet = self.api.update_status(
-                            msg, self.cachedTweet
+                        self._cachedTweet = self._api.update_status(
+                            msg, self._cachedTweet
                         ).id
-            self.cachedTime = datetime.now()
+            self._cachedTime = datetime.now()
         except tweepy.TweepError as e:
             log.exception(e)
 
