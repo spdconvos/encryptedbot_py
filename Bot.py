@@ -7,7 +7,7 @@ from signal import signal, SIGINT
 
 import RadioIDs
 
-VERSION = "2.1.13"
+VERSION = "2.1.14"
 
 log = logging.getLogger()
 
@@ -182,7 +182,7 @@ class Bot:
         normalized = self.timezone.normalize(localized)
         return normalized.strftime("%#I:%M:%S %p")
 
-    def _chunk(self, call: str) -> List(str):
+    def _chunk(self, call: str) -> List[str]:
         """Chunks tweets into an acceptable length.
 
         Chunking. Shamelessly stolen from `SeattleDSA/signal_scanner_bot/twitter.py` :)
@@ -221,7 +221,7 @@ class Bot:
 
         return tweetList
 
-    def _generateTweets(self, call: dict) -> List(str):
+    def _generateTweets(self, call: dict) -> List[str]:
         """Generates tweet(s).
 
         Args:
