@@ -15,7 +15,7 @@ jobs:
           options: "--check --target-version py39"
           src: "."
       - name: Make commit
-        if: steps.action_black.outputs.result == 'false'
+        if: steps.action_black.outputs.is_formatted == 'false'
         - uses: psf/black@stable
           with:
             options: "--target-version py39"
