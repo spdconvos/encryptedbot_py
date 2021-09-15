@@ -8,14 +8,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: psf/black@stable
       - name: Check black
+        uses: psf/black@stable
         id: action_black
         with:
           options: "--check --target-version py39"
           src: "."
       - name: Make commit
-        if: steps.action_black.outputs.is_formatted == 'false'
+        if: steps.action_black.outputs.result == 'false'
         - uses: psf/black@stable
           with:
             options: "--target-version py39"
@@ -24,6 +24,6 @@ jobs:
             git config --global user.name 'autoblack'
             git config --global user.email '76911550+spdconvos@users.noreply.github.com'
             git remote set-url origin https://x-acces-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-            git commit -am "Automatic black formatting"
+            git commit -am ":art: Automatic black formatting"
             git push
         
