@@ -1,6 +1,5 @@
 name: black-action
 on: [push, pull_request]
-
 jobs:
   lint:
     name: runner / black
@@ -19,6 +18,7 @@ jobs:
           git config --global user.name 'autoblack'
           git config --global user.email '76911550+spdconvos@users.noreply.github.com'
           git remote set-url origin https://x-acces-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git checkout $GITHUB_HEAD_REF
           git commit -am ":art: Automatic black formatting"
           git push
         
