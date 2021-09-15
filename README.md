@@ -1,5 +1,5 @@
 # EncryptedBot
-[![autoblack](https://github.com/spdconvos/encryptedbot_py/actions/workflows/black.yml/badge.svg)](https://github.com/spdconvos/encryptedbot_py/actions/workflows/black.yml)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/spdconvos/encryptedbot_py/main.svg)](https://results.pre-commit.ci/latest/github/spdconvos/encryptedbot_py/main)
 
 A bot that tweets every time calls are made on radio monitored by OpenMHZ. This bot aims to provide metadata of conversations occurring over radio channels instantly. The end goal is allowing non-automated scanners to no longer actively monitor channels that only expose meta data.
 
