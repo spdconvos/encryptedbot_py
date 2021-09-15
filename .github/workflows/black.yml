@@ -9,21 +9,16 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Check black
-        uses: psf/black@stable
+        uses: rickstaa/action-black@v1
         id: action_black
         with:
-          options: "--check --target-version py39"
-          src: "."
+          black_args: ". --target-version py39"
       - name: Make commit
-        if: steps.action_black.outputs.result == 'false'
-        - uses: psf/black@stable
-          with:
-            options: "--target-version py39"
-            src: "."
-          run: |
-            git config --global user.name 'autoblack'
-            git config --global user.email '76911550+spdconvos@users.noreply.github.com'
-            git remote set-url origin https://x-acces-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-            git commit -am ":art: Automatic black formatting"
-            git push
+        if: steps.action_black.outputs.result == 'true'
+        run: |
+          git config --global user.name 'autoblack'
+          git config --global user.email '76911550+spdconvos@users.noreply.github.com'
+          git remote set-url origin https://x-acces-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git commit -am ":art: Automatic black formatting"
+          git push
         
