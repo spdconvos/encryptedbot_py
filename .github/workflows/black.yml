@@ -1,0 +1,29 @@
+name: black-action
+on: [push, pull_request]
+
+jobs:
+  lint:
+    name: runner / black
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: psf/black@stable
+      - name: Check black
+        id: action_black
+        with:
+          options: "--check --target-version py39"
+          src: "."
+      - name: Make commit
+        if: steps.action_black.result == 'false'
+        - uses: psf/black@stable
+          with:
+            options: "--target-version py39"
+            src: "."
+          run: |
+            git config --global user.name 'autoblack'
+            git config --global user.email '76911550+spdconvos@users.noreply.github.com'
+            git remote set-url origin https://x-acces-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+            git commit -am "Automatic black formatting"
+            git push
+        
