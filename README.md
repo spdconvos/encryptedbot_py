@@ -1,4 +1,6 @@
 # EncryptedBot
+[![black-action](https://github.com/spdconvos/encryptedbot_py/actions/workflows/black.yml/badge.svg?branch=main)](https://github.com/spdconvos/encryptedbot_py/actions/workflows/black.yml)
+
 A bot that tweets every time calls are made on radio monitored by OpenMHZ. This bot aims to provide metadata of conversations occurring over radio channels instantly. The end goal is allowing non-automated scanners to no longer actively monitor channels that only expose meta data.
 
 The bot includes an API endpoint for the encrypted channels of the Seattle Police Department, this can be changed for other localities or radio channels.
