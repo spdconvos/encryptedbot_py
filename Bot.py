@@ -59,7 +59,7 @@ class Bot:
             self._api = tweepy.API(auth)
             # Test the authentication. This will gracefully fail if the keys aren't present.
             try:
-                self._api.rate_limit_status()
+                self._api.verify_credentials()
             except tweepy_unauthorized as e:
                 log.error("No keys or bad keys")
                 exit(1)
@@ -151,7 +151,7 @@ class Bot:
                 for msg in msgs:
                     # Every time it posts the new ID gets stored so this works
                     self._cachedTweet = self._api.update_status(
-                        msg, self._cachedTweet
+                        msg, in_reply_to_status_id=self._cachedTweet
                     ).id
             else:
                 for index, msg in enumerate(msgs):
@@ -160,7 +160,7 @@ class Bot:
                         self._cachedTweet = self._api.update_status(msg).id
                     else:
                         self._cachedTweet = self._api.update_status(
-                            msg, self._cachedTweet
+                            msg, in_reply_to_status_id=self._cachedTweet
                         ).id
             self._cachedTime = datetime.now()
         except tweepy.TweepyException as e:
