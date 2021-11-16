@@ -2,7 +2,7 @@ import logging, os
 from datetime import datetime, timedelta
 from typing import List
 import tweepy, json, pytz, socketio
-from tweepy.errors import TweepyException
+from tweepy.errors import Unauthorized as tweepy_unauthorized
 from signal import signal, SIGINT
 
 import RadioIDs
@@ -59,11 +59,8 @@ class Bot:
             # Test the authentication. This will gracefully fail if the keys aren't present.
             try:
                 self._api.rate_limit_status()
-            except TweepyException as e:
-                if e.api_code == 215:
-                    log.error("No keys or bad keys")
-                else:
-                    log.error("Other API error: {}".format(e))
+            except tweepy_unauthorized as e:
+                log.error("No keys or bad keys")
                 exit(1)
 
         # Register interput handler
