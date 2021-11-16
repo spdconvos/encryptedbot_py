@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from typing import List
 import tweepy, json, pytz, socketio
 from tweepy.errors import Unauthorized as tweepy_unauthorized
+from tweepy.errors import TweepyException
 from signal import signal, SIGINT
 
 import RadioIDs
@@ -162,7 +163,7 @@ class Bot:
                             msg, self._cachedTweet
                         ).id
             self._cachedTime = datetime.now()
-        except tweepy.TweepError as e:
+        except tweepy.TweepyException as e:
             log.exception(e)
 
     def _timeString(self, call: dict) -> str:
