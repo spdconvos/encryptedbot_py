@@ -2,7 +2,7 @@ import logging, os
 from datetime import datetime, timedelta
 from typing import List
 import tweepy, json, pytz, socketio
-from tweepy.error import TweepError
+from tweepy.errors import TweepyException
 from signal import signal, SIGINT
 
 import RadioIDs
@@ -59,7 +59,7 @@ class Bot:
             # Test the authentication. This will gracefully fail if the keys aren't present.
             try:
                 self._api.rate_limit_status()
-            except TweepError as e:
+            except TweepyException as e:
                 if e.api_code == 215:
                     log.error("No keys or bad keys")
                 else:
