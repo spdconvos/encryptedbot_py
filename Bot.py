@@ -7,7 +7,7 @@ from signal import signal, SIGINT
 
 import RadioIDs
 
-VERSION = "2.1.14"
+VERSION = "3.0.0"
 
 log = logging.getLogger()
 
