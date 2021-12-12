@@ -2,7 +2,7 @@ import logging, os
 from datetime import datetime, timedelta
 from typing import List
 import tweepy, json, pytz, socketio
-from tweepy.errors import Unauthorized as tweepy_unauthorized
+from tweepy.errors import Unauthorized as TweepyUnauthorized
 from signal import signal, SIGINT
 
 import RadioIDs
