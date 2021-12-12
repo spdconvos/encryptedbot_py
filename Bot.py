@@ -59,7 +59,7 @@ class Bot:
             # Test the authentication. This will gracefully fail if the keys aren't present.
             try:
                 self._api.verify_credentials()
-            except tweepy_unauthorized as e:
+            except TweepyUnauthorized as e:
                 log.error(f"No keys or bad keys: {e}")
                 exit(1)
 
