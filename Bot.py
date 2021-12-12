@@ -60,7 +60,7 @@ class Bot:
             try:
                 self._api.verify_credentials()
             except tweepy_unauthorized as e:
-                log.error("No keys or bad keys")
+                log.error(f"No keys or bad keys: {e}")
                 exit(1)
 
         # Register interput handler
