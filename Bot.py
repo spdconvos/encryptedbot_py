@@ -2,12 +2,12 @@ import logging, os
 from datetime import datetime, timedelta
 from typing import List
 import tweepy, json, pytz, socketio
-from tweepy.error import TweepError
+from tweepy.errors import Unauthorized as TweepyUnauthorized
 from signal import signal, SIGINT
 
 import RadioIDs
 
-VERSION = "2.1.14"
+VERSION = "3.0.0"
 
 log = logging.getLogger()
 
@@ -58,12 +58,9 @@ class Bot:
             self._api = tweepy.API(auth)
             # Test the authentication. This will gracefully fail if the keys aren't present.
             try:
-                self._api.rate_limit_status()
-            except TweepError as e:
-                if e.api_code == 215:
-                    log.error("No keys or bad keys")
-                else:
-                    log.error("Other API error: {}".format(e))
+                self._api.verify_credentials()
+            except TweepyUnauthorized as e:
+                log.error(f"No keys or bad keys: {e}")
                 exit(1)
 
         # Register interput handler
@@ -152,7 +149,7 @@ class Bot:
                 for msg in msgs:
                     # Every time it posts the new ID gets stored so this works
                     self._cachedTweet = self._api.update_status(
-                        msg, self._cachedTweet
+                        msg, in_reply_to_status_id=self._cachedTweet
                     ).id
             else:
                 for index, msg in enumerate(msgs):
@@ -161,10 +158,10 @@ class Bot:
                         self._cachedTweet = self._api.update_status(msg).id
                     else:
                         self._cachedTweet = self._api.update_status(
-                            msg, self._cachedTweet
+                            msg, in_reply_to_status_id=self._cachedTweet
                         ).id
             self._cachedTime = datetime.now()
-        except tweepy.TweepError as e:
+        except tweepy.TweepyException as e:
             log.exception(e)
 
     def _timeString(self, call: dict) -> str:
