@@ -110,7 +110,6 @@ class Bot:
         Args:
             data (str): The call data in a str
         """
-        # See, here's why we needed to pass in our own reference and everything about this hurts me.
         jsonData = json.loads(data)
         self._postTweet(jsonData)
 
