@@ -1,5 +1,5 @@
 # /newer
-This repo used to include a Open MHZ API call. By hitting the `api.openmhz.com/{system}/calls/newer?time={time}&filter-type={talkgroup|group}&filter-code={talkgroup or group id(s)}` endpoint we get the newest calls.
+This repo used to include a Open MHZ REST API call. By hitting the `api.openmhz.com/{system}/calls/newer?time={time}&filter-type={talkgroup|group}&filter-code={talkgroup or group id(s)}` endpoint you can get the newest calls.
 
 | Parameter | Description | Example(s) |
 |-----------|-------------|------------|
