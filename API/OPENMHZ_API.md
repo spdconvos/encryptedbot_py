@@ -27,7 +27,7 @@ This is all I care about. This is a list of call objects.
 | star | The number of stars the call has at the time of the API call | Integer |
 | len | The call length. | Integer |
 
-Some interesting metadata could be caught from looking at srcList more. Depending on how radios are deployed, radio IDs could be staticly assigned to an officer. Evidence of such a deployment would be officers using their radio off-duty and on-duty with the same ID. If IDs are tied to officers, this could be resolved into badge/serial numbers for speakers if an additional dataset is gathered.
+Some interesting metadata is caught from looking at the srcList. Radios are issued to officers in a mostly static way allowing you to create a relational database between officer's personal details and the SmartNet ID of their radio.
 
 ### direction
 Always newer for calls to this endpoint. Calls are ordered from oldest to newest.
@@ -35,7 +35,7 @@ Always newer for calls to this endpoint. Calls are ordered from oldest to newest
 ## observed weird behaviors
 - sometimes calls from random times will be returned and must be filtered out
 - 0 length calls will sometimes be returned
-- multiple radios will "speak" without actually contributing to the audio
+- multiple radios will "speak" without actually contributing to the audio, or by adding a 0 length/overlapping sub call
 
 # Socket.io
 🔜
