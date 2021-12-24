@@ -1,6 +1,8 @@
 # /newer
 This repo used to include a Open MHZ REST API call. By hitting the `api.openmhz.com/{system}/calls/newer?time={time}&filter-type={talkgroup|group}&filter-code={talkgroup or group id(s)}` endpoint you can get the newest calls.
 
+
+## config/parameters {#config}
 | Parameter | Description | Example(s) |
 |-----------|-------------|------------|
 | {system} subdomain | This is the ID for the radio system to get calls from. If you want to use this botin your locality, use the ID for your local radio system. | `kcers1b` |
@@ -15,7 +17,7 @@ This API method returns a JSON object. An example of a returned object is [inclu
 ### calls
 This is all I care about. This is a list of call objects.
 
-#### call object
+#### call model {#model}
 | property name | description | type |
 |---------------|-------------|------|
 | \_id | OpenMHZ's ID for the call. | String |
@@ -37,5 +39,21 @@ Always newer for calls to this endpoint. Calls are ordered from oldest to newest
 - 0 length calls will sometimes be returned
 - multiple radios will "speak" without actually contributing to the audio, or by adding a 0 length/overlapping sub call
 
-# Socket.io
-🔜
+# socket.io
+The bot now connects to and consumes from OpenMHZ's SocketIO instance. It is located at `https://api.openmhz.com/` with the namespace `/`, using revision 4 of the Socket.IO protocol. Use the correct version of your language's Socket library.
+
+## set up
+To start getting messages from OpenMHZ:
+1. Connect to the socket
+2. Send a message with the name `start` containing a JSON dictionary containing the following keys:
+    - `filterCode`: [described in the config section](#config)
+    - `filterType`: [described in the config section](#config)
+    - `filterName`: always "OpenMHZ"
+    - `filterStarred`: does something, use false
+    - `shortName`: the ID for your OpenMHZ system, [same as the system subdomain in the config section](#config)
+
+## new message
+The Socket will send messages with the title `new message`. The space is included in the name (it's very annoying). The contents are [the same as described in the call model section](#model). The only difference is that you only get one call at a time.
+
+## tear down
+To stop receiving messages and be nice, send the server an empty message with the name `stop` before disconnecting.
