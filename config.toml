@@ -1,7 +1,7 @@
 # Configuration for everything but the keys
 
 # Config for OpenMHZ scanning
-[radio_config]
+[radio]
 "filterCode" = [44912, 45040, 45112, 45072, 45136]
 "filterType" = "talkgroup"
 "filterName" = "OpenMHZ"
@@ -15,7 +15,7 @@
 # "shortName": "kcers1b",
 
 # Config for how to tweet
-[tweet_config]
+[tweet]
 call = "{} second encrypted call at {}"
 names = "#{}: {}"
 hashtags = "#SeattleEncryptedComms"
