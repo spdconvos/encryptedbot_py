@@ -7,7 +7,7 @@ from signal import signal, SIGINT
 
 import RadioIDs
 
-VERSION = "3.1.0"
+VERSION = "3.1.1"
 
 log = logging.getLogger()
 
@@ -26,7 +26,7 @@ class Bot:
                 # Check for necessary config keys
                 for key in ["radio", "twitter"]:
                     if key not in self.config:
-                        log.error(f"Missing {key} in config")
+                        log.error(f"Missing {key} set up in config")
                         exit(1)
 
                 # Fill in defaults
