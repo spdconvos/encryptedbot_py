@@ -20,3 +20,9 @@ call = "{} second encrypted call at {}"
 names = "#{}: {}"
 hashtags = "#SeattleEncryptedComms"
 padding = 20
+
+[general]
+call_threshold = 1
+timezone = "US/Pacific"
+window_minutes = 5
+debug = false
