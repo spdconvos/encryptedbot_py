@@ -26,8 +26,7 @@ class Bot:
                 # Check for necessary config keys
                 for key in ["radio", "twitter"]:
                     if key not in self.config:
-                        log.error(f"Missing {key} set up in config")
-                        exit(1)
+                        raise KeyError(f"Missing {key} set up in config")
 
                 # Fill in defaults
                 self.config["general"]["timezone"] = (
