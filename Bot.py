@@ -1,13 +1,13 @@
 import logging, os
 from datetime import datetime, timedelta
 from typing import List
-import tweepy, json, pytz, socketio
+import tweepy, json, pytz, socketio, tomli
 from tweepy.errors import Unauthorized as TweepyUnauthorized
 from signal import signal, SIGINT
 
 import RadioIDs
 
-VERSION = "3.0.1"
+VERSION = "3.1.2"
 
 log = logging.getLogger()
 
@@ -15,33 +15,39 @@ log = logging.getLogger()
 class Bot:
     """The twitter bot."""
 
-    # Consts
-    CALL_TEXT = "{} second encrypted call at {}"
-    NAMES_TEXT = "#{}: {}"
-    HASHTAGS = "#SeattleEncryptedComms"
-    TWEET_PADDING = 20
-    CONFIG = {
-        "filterCode": [44912, 45040, 45112, 45072, 45136],
-        "filterType": "talkgroup",
-        "filterName": "OpenMHZ",
-        "filterStarred": False,
-        "shortName": "kcers1b",
-    }
-    """ # DEBUG CONFIG TO GET A LOT OF API RESPONSES
-    CONFIG = {
-        "filterCode": "",
-        "filterType": "all",
-        "filterName": "OpenMHZ",
-        "filterStarred": False,
-        "shortName": "kcers1b",
-    } """
-
     def __init__(self) -> None:
         """Initializes the class."""
-        self.callThreshold = int(os.getenv("CALL_THRESHOLD", 1))
-        self.debug = os.getenv("DEBUG", "true").lower() == "true"
-        self.window_minutes = int(os.getenv("WINDOW_M", 5))
-        self.timezone = pytz.timezone(os.getenv("TIMEZONE", "US/Pacific"))
+
+        # Get config
+        try:
+            with open("config.toml", "r") as f:
+                self.config = tomli.load(f)
+
+            self.generalConfig = {}
+            # Fill in defaults
+            self.generalConfig["timezone"] = self.config["general"].get(
+                "timezone", "US/Pacific"
+            )
+            self.generalConfig["window_minutes"] = self.config["general"][
+                "window_minutes"
+            ].get("window_minutes", 5)
+            self.generalConfig["call_threshold"] = self.config["general"][
+                "call_threshold"
+            ].get("call_threshold", 1)
+            self.debug = self.config["general"]["debug"].get("debug", True)
+
+            # Check for necessary config keys
+            if "twitter" not in self.config and self.debug == False:
+                raise KeyError("No twitter config found")
+            if "radio" not in self.config:
+                raise KeyError("No radio config found")
+
+            self.twitterConfig = self.config["twitter"]
+
+        except FileNotFoundError:
+            raise FileNotFoundError("Missing config.toml")
+        except tomli.TOMLDecodeError as e:
+            raise tomli.TOMLDecodeError(f"Error in config.toml: {e}")
 
         self._cachedTweet: int = None
         self._cachedTime: datetime = None
@@ -87,7 +93,7 @@ class Bot:
     def _connectHandler(self) -> None:
         """Connect event handler, sends start packet."""
         # Tell socketIO to send us data.
-        self._sio.emit("start", self.CONFIG)
+        self._sio.emit("start", self.config["radio"])
         log.info("Connected to socket")
 
     def _disconnectHandler(self) -> None:
@@ -123,9 +129,9 @@ class Bot:
         # Check for weird old calls
         if abs(diff.total_seconds()) >= 1.8e3:
             return
-        elif call["len"] < self.callThreshold:
+        elif call["len"] < self.generalConfig["call_threshold"]:
             log.debug(
-                f"Call of size {call['len']} below threshold ({self.callThreshold})"
+                f"Call of size {call['len']} below threshold ({self.generalConfig['call_threshold']})"
             )
             return
 
@@ -139,7 +145,8 @@ class Bot:
         # Check for a cached tweet, then check if the last tweet was less than the window ago. If the window has expired dereference the cached tweet.
         if (
             self._cachedTime is not None
-            and self._cachedTime + timedelta(minutes=self.window_minutes)
+            and self._cachedTime
+            + timedelta(minutes=self.generalConfig["window_minutes"])
             <= datetime.now()
         ):
             self._cachedTweet = None
@@ -174,8 +181,10 @@ class Bot:
         # Get time from the call.
         date = datetime.strptime(call["time"], "%Y-%m-%dT%H:%M:%S.000%z")
         # Fuck I hate how computer time works
-        localized = date.replace(tzinfo=pytz.utc).astimezone(self.timezone)
-        normalized = self.timezone.normalize(localized)
+        localized = date.replace(tzinfo=pytz.utc).astimezone(
+            self.generalConfig["timezone"]
+        )
+        normalized = self.generalConfig["timezone"].normalize(localized)
         return normalized.strftime("%#I:%M:%S %p")
 
     def _chunk(self, call: str) -> List[str]:
@@ -196,13 +205,17 @@ class Bot:
         subTweet: str = ""
         for index in range(len(words)):
             if len(tweetList) == 0:
-                subTweet = ", ".join(words[baseIndex:index]) + " ... " + self.HASHTAGS
+                subTweet = (
+                    ", ".join(words[baseIndex:index])
+                    + " ... "
+                    + self.twitterConfig["hashtags"]
+                )
             elif index < len(words):
                 subTweet = ", ".join(words[baseIndex:index]) + " ..."
             elif index == len(words):
                 subTweet = ", ".join(words[baseIndex:index])
 
-            if len(subTweet) > 280 - self.TWEET_PADDING:
+            if len(subTweet) > 280 - self.twitterConfig["padding"]:
                 lastIndex = index - 1
                 tweetList.append(", ".join(words[baseIndex:lastIndex]) + " ...")
                 baseIndex = lastIndex
@@ -211,7 +224,9 @@ class Bot:
         listLength = len(tweetList)
         for index in range(len(tweetList)):
             if index == 0:
-                tweetList[index] += f" {self.HASHTAGS} {index + 1}/{listLength}"
+                tweetList[
+                    index
+                ] += f' {self.twitterConfig["hashtags"]} {index + 1}/{listLength}'
             else:
                 tweetList[index] += f" {index + 1}/{listLength}"
 
@@ -230,7 +245,7 @@ class Bot:
         info = RadioIDs.getNames(call["srcList"])
         log.info(f"{info=}")
         # First, take all of the calls and turn them into strings.
-        callString = self.CALL_TEXT.format(
+        callString = self.twitterConfig["call"].format(
             call["len"],
             self._timeString(call),
         )
@@ -239,7 +254,7 @@ class Bot:
         for person in info:
             if person is not None:
                 peopleStrings.append(
-                    self.NAMES_TEXT.format(
+                    self.twitterConfig["names"].format(
                         person["badge"],
                         person["full_name"],
                     )
@@ -249,12 +264,12 @@ class Bot:
             tweet = "{} ({}) {}".format(
                 callString,
                 "; ".join(peopleStrings),
-                self.HASHTAGS,
+                self.twitterConfig["hashtags"],
             )
         else:
             tweet = "{} {}".format(
                 callString,
-                self.HASHTAGS,
+                self.twitterConfig["hashtags"],
             )
 
         # If we don't have to chunk we can just leave.

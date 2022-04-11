@@ -1,0 +1,28 @@
+# Configuration for everything but the keys
+
+# Config for OpenMHZ scanning
+[radio]
+"filterCode" = [44912, 45040, 45112, 45072, 45136]
+"filterType" = "talkgroup"
+"filterName" = "OpenMHZ"
+"filterStarred" = false
+"shortName" = "kcers1b"
+# DEBUG CONFIG TO GET A LOT OF RESPONSES
+# "filterCode": "",
+# "filterType": "all",
+# "filterName": "OpenMHZ",
+# "filterStarred": False,
+# "shortName": "kcers1b",
+
+# Config for how to tweet
+[tweet]
+call = "{} second encrypted call at {}"
+names = "#{}: {}"
+hashtags = "#SeattleEncryptedComms"
+padding = 20
+
+[general]
+call_threshold = 1
+timezone = "US/Pacific"
+window_minutes = 5
+debug = false
