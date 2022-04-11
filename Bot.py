@@ -23,38 +23,28 @@ class Bot:
             with open("config.toml", "r") as f:
                 self.config = tomli.load(f)
 
-                # Check for necessary config keys
-                for key in ["radio", "twitter"]:
-                    if key not in self.config:
-                        raise KeyError(f"Missing {key} set up in config")
+            # Fill in defaults
+            self.config["general"]["timezone"] = self.config["general"].get(
+                "timezone", "US/Pacific"
+            )
+            self.config["general"]["window_minutes"] = self.config["general"][
+                "window_minutes"
+            ].get("window_minutes", 5)
+            self.config["general"]["call_threshold"] = self.config["general"][
+                "call_threshold"
+            ].get("call_threshold", 1)
+            self.debug = self.config["general"]["debug"].get("debug", True)
 
-                # Fill in defaults
-                self.config["general"]["timezone"] = (
-                    self.config["general"]["timezone"]
-                    if "timezone" in self.config["general"]
-                    else "US/Pacific"
-                )
-                self.config["general"]["window_minutes"] = (
-                    self.config["general"]["window_minutes"]
-                    if "window_minutes" in self.config["general"]
-                    else 5
-                )
-                self.config["general"]["call_threshold"] = (
-                    self.config["general"]["call_threshold"]
-                    if "call_threshold" in self.config["general"]
-                    else 1
-                )
-                debug = (
-                    self.config["general"]["debug"]
-                    if "debug" in self.config["general"]
-                    else True
-                )
+            # Check for necessary config keys
+            if "twitter" not in self.config and self.debug == False:
+                raise KeyError("No twitter config found")
+            if "radio" not in self.config:
+                raise KeyError("No radio config found")
+
         except FileNotFoundError:
-            log.error("No config file found. Exiting.")
-            exit(1)
+            raise FileNotFoundError("Missing config.toml")
         except tomli.TOMLDecodeError as e:
-            log.error(f"Error parsing config file: {e}")
-            exit(1)
+            raise tomli.TOMLDecodeError(f"Error in config.toml: {e}")
 
         self._cachedTweet: int = None
         self._cachedTime: datetime = None
