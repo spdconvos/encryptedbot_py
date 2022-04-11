@@ -23,14 +23,15 @@ class Bot:
             with open("config.toml", "r") as f:
                 self.config = tomli.load(f)
 
+            self.generalConfig = {}
             # Fill in defaults
-            self.config["general"]["timezone"] = self.config["general"].get(
+            self.generalConfig["timezone"] = self.config["general"].get(
                 "timezone", "US/Pacific"
             )
-            self.config["general"]["window_minutes"] = self.config["general"][
+            self.generalConfig["window_minutes"] = self.config["general"][
                 "window_minutes"
             ].get("window_minutes", 5)
-            self.config["general"]["call_threshold"] = self.config["general"][
+            self.generalConfig["call_threshold"] = self.config["general"][
                 "call_threshold"
             ].get("call_threshold", 1)
             self.debug = self.config["general"]["debug"].get("debug", True)
@@ -40,6 +41,8 @@ class Bot:
                 raise KeyError("No twitter config found")
             if "radio" not in self.config:
                 raise KeyError("No radio config found")
+
+            self.twitterConfig = self.config["twitter"]
 
         except FileNotFoundError:
             raise FileNotFoundError("Missing config.toml")
@@ -126,9 +129,9 @@ class Bot:
         # Check for weird old calls
         if abs(diff.total_seconds()) >= 1.8e3:
             return
-        elif call["len"] < self.config["general"]["call_threshold"]:
+        elif call["len"] < self.generalConfig["call_threshold"]:
             log.debug(
-                f"Call of size {call['len']} below threshold ({self.config['general']['call_threshold']})"
+                f"Call of size {call['len']} below threshold ({self.generalConfig['call_threshold']})"
             )
             return
 
@@ -143,7 +146,7 @@ class Bot:
         if (
             self._cachedTime is not None
             and self._cachedTime
-            + timedelta(minutes=self.config["general"]["window_minutes"])
+            + timedelta(minutes=self.generalConfig["window_minutes"])
             <= datetime.now()
         ):
             self._cachedTweet = None
@@ -179,9 +182,9 @@ class Bot:
         date = datetime.strptime(call["time"], "%Y-%m-%dT%H:%M:%S.000%z")
         # Fuck I hate how computer time works
         localized = date.replace(tzinfo=pytz.utc).astimezone(
-            self.config["general"]["timezone"]
+            self.generalConfig["timezone"]
         )
-        normalized = self.config["general"]["timezone"].normalize(localized)
+        normalized = self.generalConfig["timezone"].normalize(localized)
         return normalized.strftime("%#I:%M:%S %p")
 
     def _chunk(self, call: str) -> List[str]:
@@ -205,14 +208,14 @@ class Bot:
                 subTweet = (
                     ", ".join(words[baseIndex:index])
                     + " ... "
-                    + self.config["tweet"]["hashtags"]
+                    + self.twitterConfig["hashtags"]
                 )
             elif index < len(words):
                 subTweet = ", ".join(words[baseIndex:index]) + " ..."
             elif index == len(words):
                 subTweet = ", ".join(words[baseIndex:index])
 
-            if len(subTweet) > 280 - self.config["tweet"]["padding"]:
+            if len(subTweet) > 280 - self.twitterConfig["padding"]:
                 lastIndex = index - 1
                 tweetList.append(", ".join(words[baseIndex:lastIndex]) + " ...")
                 baseIndex = lastIndex
@@ -223,7 +226,7 @@ class Bot:
             if index == 0:
                 tweetList[
                     index
-                ] += f' {self.config["tweet"]["hashtags"]} {index + 1}/{listLength}'
+                ] += f' {self.twitterConfig["hashtags"]} {index + 1}/{listLength}'
             else:
                 tweetList[index] += f" {index + 1}/{listLength}"
 
@@ -242,7 +245,7 @@ class Bot:
         info = RadioIDs.getNames(call["srcList"])
         log.info(f"{info=}")
         # First, take all of the calls and turn them into strings.
-        callString = self.config["tweet"]["call"].format(
+        callString = self.twitterConfig["call"].format(
             call["len"],
             self._timeString(call),
         )
@@ -251,7 +254,7 @@ class Bot:
         for person in info:
             if person is not None:
                 peopleStrings.append(
-                    self.config["tweet"]["names"].format(
+                    self.twitterConfig["names"].format(
                         person["badge"],
                         person["full_name"],
                     )
@@ -261,12 +264,12 @@ class Bot:
             tweet = "{} ({}) {}".format(
                 callString,
                 "; ".join(peopleStrings),
-                self.config["tweet"]["hashtags"],
+                self.twitterConfig["hashtags"],
             )
         else:
             tweet = "{} {}".format(
                 callString,
-                self.config["tweet"]["hashtags"],
+                self.twitterConfig["hashtags"],
             )
 
         # If we don't have to chunk we can just leave.
