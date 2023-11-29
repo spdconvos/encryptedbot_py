@@ -256,7 +256,7 @@ class Bot:
                 peopleStrings.append(
                     self.twitterConfig["names"].format(
                         person["badge"],
-                        person["full_name"],
+                        person["last_name"],
                     )
                 )
 
