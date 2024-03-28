@@ -2,17 +2,17 @@
 
 # Config for OpenMHZ scanning
 [radio]
-"filterCode" = [44912, 45040, 45112, 45072, 45136]
+"filterCode" = [2815, 2817, 2821, 2807]
 "filterType" = "talkgroup"
 "filterName" = "OpenMHZ"
 "filterStarred" = false
-"shortName" = "kcers1b"
+"shortName" = "psern"
 # DEBUG CONFIG TO GET A LOT OF RESPONSES
 # "filterCode": "",
 # "filterType": "all",
 # "filterName": "OpenMHZ",
 # "filterStarred": False,
-# "shortName": "kcers1b",
+# "shortName": "psern",
 
 # Config for how to tweet
 [tweet]
